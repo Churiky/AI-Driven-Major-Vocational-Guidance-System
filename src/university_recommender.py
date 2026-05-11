@@ -71,6 +71,19 @@ class UniversityRecommender:
         # 4. Tiền xử lý thuộc tính cho TOPSIS
         self._prepare_topsis_features()
 
+        # 5. Load điểm chất lượng đào tạo từ data_da_hop_nhat.csv
+        self.quality_scores = {}
+        quality_path = os.path.join(os.path.dirname(path), 'data_da_hop_nhat.csv')
+        if os.path.exists(quality_path):
+            try:
+                df_quality = pd.read_csv(quality_path, encoding='utf-8-sig')
+                if 'Tên trường' in df_quality.columns and 'Tổng điểm' in df_quality.columns:
+                    # Chuyển đổi sang string và xóa khoảng trắng để map cho chuẩn
+                    df_quality['Tên trường'] = df_quality['Tên trường'].astype(str).str.strip()
+                    self.quality_scores = dict(zip(df_quality['Tên trường'], df_quality['Tổng điểm']))
+            except Exception as e:
+                print(f"Không thể tải điểm chất lượng: {e}")
+
     # -----------------------------------------------------------------------
     # Tiền xử lý
     # -----------------------------------------------------------------------
@@ -133,7 +146,7 @@ class UniversityRecommender:
         Args:
             nganh_key   : key trong self.mapping, ví dụ "CongNgheThongTin"
             user_scores : dict điểm các môn, ví dụ {"Toan": 8.5, "Ly": 7, "Hoa": 8}
-            weights     : [w_diem, w_xacxuat, w_loai, w_vitri], mặc định [0.4, 0.3, 0.2, 0.1]
+            weights     : [w_diem, w_xacxuat, w_loai, w_vitri, w_chatluong], mặc định [0.35, 0.25, 0.15, 0.1, 0.15]
 
         Returns:
             list[dict] – Top 10 trường xếp hạng theo TOPSIS, mỗi dict gồm:
@@ -141,7 +154,8 @@ class UniversityRecommender:
                 Loai, ThanhPho, Score_TOPSIS
         """
         if weights is None:
-            weights = [0.4, 0.3, 0.2, 0.1]
+            # Tăng thêm 1 trọng số cho điểm chất lượng đào tạo
+            weights = [0.35, 0.25, 0.15, 0.1, 0.15]
 
         keywords = self.mapping.get(nganh_key, [])
         if not keywords:
@@ -150,7 +164,7 @@ class UniversityRecommender:
         # Tên cột linh hoạt (hỗ trợ cả CSV cũ lẫn CSV mới)
         col_truong  = self._find_col(['truong', 'Tên trường', 'ten_truong'])
         col_nganh   = self._find_col(['ten_nganh', 'Tên ngành', 'Nganh'])
-        col_cutoff  = self._find_col(['diem_chuan', 'Tổng điểm', 'Diem chuan'])
+        col_cutoff  = self._find_col(['diem_chuan', 'Diem chuan']) # Đã xóa 'Tổng điểm' khỏi đây
         col_tohop   = self._find_col(['to_hop', 'To hop'])
 
         if not col_cutoff or not col_tohop:
@@ -223,6 +237,11 @@ class UniversityRecommender:
                     current_danhgia = "Tỉ lệ thấp"
 
             ten_truong = str(self._get(row, [col_truong] if col_truong else [], ""))
+            ten_truong_clean = ten_truong.strip()
+            
+            # Lấy điểm chất lượng từ mapping, nếu không có thì lấy mặc định 45.0
+            quality_score = self.quality_scores.get(ten_truong_clean, 45.0)
+
             type_val = float(row.get('Type_Score', 0.5))
             loc_val = float(row.get('Location_Score', 0.5))
             loai = str(self._get(row, ['Loại trường', 'loai_truong'], ""))
@@ -240,6 +259,7 @@ class UniversityRecommender:
                 "ThanhPho":  thanh_pho,
                 "Type_Val":  type_val,
                 "Loc_Val":   loc_val,
+                "Quality_Score": float(quality_score)
             })
 
         if not recommendations:
@@ -248,14 +268,15 @@ class UniversityRecommender:
         # --- BƯỚC 5: XẾP HẠNG ĐA TIÊU CHÍ (TOPSIS) ---
         res_df = pd.DataFrame(recommendations)
 
-        # Ma trận quyết định: C1(Sát điểm), C2(Xác suất), C3(Loại trường), C4(Vị trí)
+        # Ma trận quyết định: C1(Sát điểm), C2(Xác suất), C3(Loại trường), C4(Vị trí), C5(Chất lượng)
         matrix = []
         for _, r in res_df.iterrows():
             c1 = r['Cutoff'] # Càng sát điểm chuẩn càng tốt
             c2 = r['Prob']
             c3 = r['Type_Val']
             c4 = r['Loc_Val']
-            matrix.append([c1, c2, c3, c4])
+            c5 = r['Quality_Score'] # Điểm chất lượng trường
+            matrix.append([c1, c2, c3, c4, c5])
 
         matrix = np.array(matrix, dtype=float)
 
