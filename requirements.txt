@@ -1,0 +1,16 @@
+beautifulsoup4
+faiss-cpu
+Flask
+langchain-classic
+langchain-community
+langchain-google-genai
+langchain-text-splitters
+matplotlib
+numpy
+pandas
+pypdf
+requests
+scikit-learn
+seaborn
+torch
+Unidecode

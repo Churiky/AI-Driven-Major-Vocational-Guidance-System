@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "embedding_model": "gemini-embedding-001",
+  "chunk_size": 1000,
+  "chunk_overlap": 100,
+  "indexed_at": "2026-04-13T06:55:40.180535Z",
+  "files": {
+    "Quy_che_tuyen_sinh_2025.pdf": {
+      "path": "C:\\Users\\pc\\Downloads\\KySu-1\\data\\documents\\Quy_che_tuyen_sinh_2025.pdf",
+      "size": 800025,
+      "mtime": 1774708628.8996027,
+      "sha256": "a8ae471adb53dca238325952c4bf7ce4d36f2fc0673ce2893218c0239df0abb0",
+      "pages": 41,
+      "chunks": 94,
+      "status": "indexed",
+      "indexed_at": "2026-04-13T06:43:31.895744Z",
+      "index_dir": "per_file_indexes\\Quy_che_tuyen_sinh_2025_b4c499d681"
+    },
+    "Dai_Hoc_Cong_Thuong_TPHCM.pdf": {
+      "path": "C:\\Users\\pc\\Downloads\\KySu-1\\data\\documents\\Dai_Hoc_Cong_Thuong_TPHCM.pdf",
+      "size": 300617,
+      "mtime": 1776063208.6270838,
+      "sha256": "ece3982799ab1bab9a4dc47ae95638c7557eebb73c6f87d1316b3d7572449594",
+      "pages": 5,
+      "chunks": 11,
+      "status": "indexed",
+      "indexed_at": "2026-04-13T06:55:35.861224Z",
+      "index_dir": "per_file_indexes\\Dai_Hoc_Cong_Thuong_TPHCM_e141ef5e45"
+    },
+    "Dai_Hoc_Mo_TPHCM.pdf": {
+      "path": "C:\\Users\\pc\\Downloads\\KySu-1\\data\\documents\\Dai_Hoc_Mo_TPHCM.pdf",
+      "size": 4829757,
+      "mtime": 1776063249.4337914,
+      "sha256": "b841b13e4b049d3b07a854a089a61920d1309803a727b61627799aa7b48bd3dd",
+      "pages": 29,
+      "chunks": 43,
+      "status": "indexed",
+      "indexed_at": "2026-04-13T06:55:40.180535Z",
+      "index_dir": "per_file_indexes\\Dai_Hoc_Mo_TPHCM_b58381d9e8"
+    }
+  }
+}

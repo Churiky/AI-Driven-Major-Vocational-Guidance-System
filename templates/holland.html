@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Holland</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.45s ease forwards; }
+        .step-active { background: #3b82f6; color: #fff; }
+        .step-idle   { background: #e2e8f0; color: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+
+    <div class="fixed top-0 left-0 right-0 bg-white border-b border-slate-100 z-40 px-6 py-3 flex items-center gap-3 shadow-sm">
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-active flex items-center justify-center text-[9px]">1</span>
+            <span class="text-blue-600 hidden sm:inline">Tính cách</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">2</span>
+            <span class="text-slate-300 hidden sm:inline">Điểm thi</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">3</span>
+            <span class="text-slate-300 hidden sm:inline">Ưu tiên</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">4</span>
+            <span class="text-slate-300 hidden sm:inline">Kết quả</span>
+        </div>
+    </div>
+
+    <div class="max-w-xl mx-auto mt-20 fade-up">
+        <div class="text-center mb-8">
+            <span class="bg-indigo-100 text-indigo-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Bước 1: RIASEC</span>
+            <h1 class="text-3xl font-black text-slate-800 mt-3 tracking-tight">Khám phá<br>nhóm tính cách</h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium">Nhập tổng điểm các nhóm (từ 0 đến 5) dựa trên bài test Holland của bạn.</p>
+        </div>
+
+        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+            <form method="post" class="grid grid-cols-2 gap-6">
+                {% for code in ['R', 'I', 'A', 'S', 'E', 'C'] %}
+                <div class="relative group">
+                    <label class="absolute -top-2.5 left-4 bg-white px-2 text-[10px] font-black text-blue-500 uppercase tracking-widest">Nhóm {{ code }}</label>
+                    <input name="{{ code }}" type="number" min="0" max="5" step="1" placeholder="0-5"
+                           oninput="if(value>5)value=5;if(value<0)value=0"
+                           class="w-full border-2 border-slate-50 bg-slate-50 rounded-2xl p-5 text-center text-3xl font-black text-slate-700 focus:border-blue-400 focus:bg-white outline-none transition-all" required>
+                </div>
+                {% endfor %}
+                
+                <button type="submit" class="col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-200 hover:-translate-y-1 active:scale-95 mt-4 text-sm uppercase tracking-widest">
+                    Tiếp tục: Nhập điểm thi ➡️
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

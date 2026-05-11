@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập điểm thi THPT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.45s ease forwards; }
+        .step-done   { background: #22c55e; color: #fff; }
+        .step-active { background: #3b82f6; color: #fff; }
+        .step-idle   { background: #e2e8f0; color: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+
+    <div class="fixed top-0 left-0 right-0 bg-white border-b border-slate-100 z-40 px-6 py-3 flex items-center gap-3 shadow-sm">
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-done flex items-center justify-center text-[9px]">✓</span>
+            <span class="text-slate-400 hidden sm:inline">Tính cách</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-active flex items-center justify-center text-[9px]">2</span>
+            <span class="text-blue-600 hidden sm:inline">Điểm thi</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">3</span>
+            <span class="text-slate-300 hidden sm:inline">Ưu tiên</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">4</span>
+            <span class="text-slate-300 hidden sm:inline">Kết quả</span>
+        </div>
+    </div>
+
+    <div class="max-w-xl mx-auto mt-20 fade-up">
+        <div class="text-center mb-8">
+            <span class="bg-emerald-100 text-emerald-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Bước 2: Học tập</span>
+            <h1 class="text-3xl font-black text-slate-800 mt-3 tracking-tight">Kết quả thi<br>của bạn thế nào?</h1>
+        </div>
+
+        <form method="post" action="/score" class="space-y-5">
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Môn bắt buộc</p>
+                <div class="grid grid-cols-3 gap-4">
+                    {% for mon in [('toan','Toán'), ('van','Văn'), ('anh','Anh')] %}
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 text-center">{{ mon[1] }}</label>
+                        <input name="{{ mon[0] }}" type="number" min="0" max="10" step="0.01" oninput="validateScore(this)" 
+                               class="w-full bg-transparent text-center text-xl font-black text-slate-700 outline-none" required>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Bài thi tổ hợp tự chọn</p>
+                <div class="flex gap-4 mb-6">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="block_type" value="khtn" onclick="toggleSubjects('khtn')" class="peer sr-only" required>
+                        <div class="py-3 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 font-black text-slate-400 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition-all">KHTN</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="block_type" value="khxh" onclick="toggleSubjects('khxh')" class="peer sr-only">
+                        <div class="py-3 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 font-black text-slate-400 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:text-orange-600 transition-all">KHXH</div>
+                    </label>
+                </div>
+
+                <div id="group-khtn" class="hidden grid grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {% for mon in [('ly','Lý'), ('hoa','Hóa'), ('sinh','Sinh')] %}
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 text-center">{{ mon[1] }}</label>
+                        <input name="{{ mon[0] }}" value="0" type="number" min="0" max="10" step="0.01" oninput="validateScore(this)" class="w-full bg-transparent text-center text-xl font-black text-slate-700 outline-none">
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="group-khxh" class="hidden grid grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {% for mon in [('su','Sử'), ('dia','Địa'), ('gdcd','GDCD')] %}
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 text-center">{{ mon[1] }}</label>
+                        <input name="{{ mon[0] }}" value="0" type="number" min="0" max="10" step="0.01" oninput="validateScore(this)" class="w-full bg-transparent text-center text-xl font-black text-slate-700 outline-none">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex gap-3 pb-10">
+                <a href="/" class="bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-500 font-black py-4 px-6 rounded-2xl transition text-sm">← Quay lại</a>
+                <button type="submit" class="flex-1 bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl active:scale-95 text-sm uppercase tracking-widest">
+                    Tiếp tục: Chọn ưu tiên 🚀
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function validateScore(input) {
+            let val = parseFloat(input.value);
+            if (val > 10) input.value = 10;
+            if (val < 0) input.value = 0;
+        }
+        function toggleSubjects(type) {
+            const khtn = document.getElementById('group-khtn'), khxh = document.getElementById('group-khxh');
+            if (type === 'khtn') { khtn.classList.remove('hidden'); khxh.classList.add('hidden'); document.querySelectorAll('#group-khxh input').forEach(i => i.value = 0); }
+            else { khxh.classList.remove('hidden'); khtn.classList.add('hidden'); document.querySelectorAll('#group-khtn input').forEach(i => i.value = 0); }
+        }
+    </script>
+</body>
+</html>

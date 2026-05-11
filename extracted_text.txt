@@ -1,0 +1,245 @@
+ĐỀ CƯƠNG CHI TIẾT
+KHÓA LUẬN KỸ SƯ NGÀNH
+ 
+CNTT
+ NĂM HỌC 202
+5 
+-
+ 
+202
+6
+Mã đề tài:
+Tên đề tài: 
+Xây dựng hệ thống tư vấn hướng nghiệp và gợi ý ngành học thông minh kết hợp AI đa phương thức
+Định hướng đề tài: 
+ 
+Định hướng ứng dụng
+□
+ Định hướng nghiên cứu 
+ Định hướng MMT
+Thông tin GVHD
+Họ tên giảng viên: 
+Phan Thị Ngọc Mai
+Điện thoại: 
+ 
+0918526619
+Email: 
+ 
+maiphantn@huit.edu.vn
+Nhóm sinh viên thực hiện đề tài
+Mai Ngọc Hoan
+MSSV:
+ 2001221471
+Lớp: 
+13DHTH03
+Nguyễn Hồng Thanh Thiện
+M
+SSV:
+ 2001216176
+Lớp: 
+12DHTH12
+Mục tiêu: 
+Xây dựng hệ thống tư vấn hướng nghiệp tự động giúp học sinh lớp 12 lựa chọn ngành học và trường đại học phù hợp dựa trên điểm số học tập và đặc điểm cá nhân.
+Phân tích hồ sơ học sinh gồm điểm học tập, sở thích và tính cách nghề nghiệp (Holland Code hoặc Big Five).
+Xây dựng mô hình gợi ý ngành học và trường đại học dựa trên dữ liệu điểm chuẩn các năm, khối thi, xu hướng nghề nghiệp và cơ hội việc làm.
+Ứng dụng các công nghệ AI hiện đại như Transformer, Large Language Model (LLM) và Retrieval Augmented Generation (RAG) để phát triển trợ lý ảo hướng nghiệp có khả năng giải đáp các câu hỏi về tuyển sinh đại học.
+Phát triển Web Application với giao diện trực quan hiển thị bản đồ nghề nghiệp, danh sách trường mục tiêu và xác suất trúng tuyển.
+Yêu cầu
+Các nội dung cụ thể cần thực hiện:
+Trình bày tổng quan đề tài: lý do chọn đề tài, nhiệm vụ, đối tượng và phạm vi nghiên cứu.
+Khảo sát các nghiên cứu liên quan trong và ngoài nước, phân tích và đánh giá các phương pháp hiện có.
+Lựa chọn mô hình hoặc thuật toán phù hợp (các phương pháp trong khoảng 5 năm gần đây), mô tả bài toán và đánh giá ưu, nhược điểm của mô hình.
+Đề xuất phương pháp cải tiến nhằm nâng cao hiệu quả mô hình/thuật toán áp dụng cho bài toán.
+Triển khai và cài đặt mô hình: mô tả cấu hình hệ thống, ngôn ngữ lập trình, bộ dữ liệu, phương pháp tiền xử lý và thực nghiệm mô hình.
+Đánh giá kết quả thực nghiệm và phân tích hiệu quả của hệ thống.
+Xây dựng ứng dụng hoàn chỉnh và triển khai thực tế trên ít nhất hai nền tảng.
+Môi trường thực hiện
+Ngôn ngữ lập trình: Python.
+Thư viện xử lý dữ liệu: Pandas, NumPy dùng để xử lý và phân tích dữ liệu học sinh.
+Thư viện Machine Learning: PyTorch và Scikit-learn được sử dụng để xây dựng và huấn luyện mô hình.
+Mô hình AI: Transformer Neural Network dùng để phân tích mối quan hệ giữa điểm học tập, đặc điểm tính cách Holland RIASEC và ngành học phù hợp.
+Dữ liệu: Dataset tổng hợp bao gồm điểm học tập, vector tính cách Holland và ngành học; cùng dữ liệu điểm chuẩn của một số trường đại học.
+Môi trường phát triển: Python 3.x, Visual Studio Code.
+Thời gian thực hiện: 
+14 tuần (từ ngày ........ tới ngày ..........)
+Thang điểm
+STT
+Nội dung
+CLO
+Điểm
+1
+Tổng quan đề tài: 
+lý do chọn đề tài; nhiệm vụ, đối tượng và phạm vi nghiên cứu của đề tài.
+Khảo sát các công trình nghiên cứu liên quan.
+CLO1.1
+0.25
+0.5
+2
+Lập kế hoạch và phân công thực hiện công việc
+CLO6
+0.25
+3
+Trình b
+ày cơ sở lý thuyết:
+T
+rình bày các khái niệm, phương pháp và mô hình liên quan như Recommendation System, Transformer, LLM, RAG; 
+V
+í dụ minh họa
+CLO1.2
+0.5
+0.25
+4
+Trình bày mô hình/thuật toán:
+Mô 
+tả
+ mô hình/thuật toán đề xuất
+: trình bày rõ cấu trúc và nguyên lý hoạt động của mô hình gợi ý ngành học và trường đại học. 
+ 
+Phân tích ưu điểm và nhược điểm của mô hình/thuật toán
+ khi áp dụng vào bài toán tư vấn hướng nghiệp.
+Đề xuất phương pháp cải tiến mô hình/thuật toán
+ nhằm nâng cao độ chính xác và hiệu quả của hệ thống gợi ý. 
+CLO2.1
+0.5
+0.25
+0.5
+Mô tả bộ dữ liệu thực nghiệm.
+CLO2.2
+0.5
+5
+Trình bày
+ 
+phương pháp
+ tiền xử lý dữ liệu
+: 
+mô tả dataset sử dụng (điểm học sinh, dữ liệu ngành học, điểm chuẩn), các bước tiền xử lý, chuẩn hóa và làm giàu dữ liệu
+CLO1.1
+0.5
+6
+Cài đặt 
+mô hình/thuật toán và xây dựng giao diện ứng dụng:
+Mô tả cấu hình hệ thống, lựa chọn ngôn ngữ lập trình, thư viện AI và môi trường thực nghiệm
+Cài đặt quy trình tiền xử lý dữ liệu (làm sạch dữ liệu, chuẩn hóa điểm số, vector hóa dữ liệu tính cách và ngành học)
+Cài đặt mô hình baseline cho bài toán gợi ý ngành học
+Cài đặt mô hình/thuật toán đề xuất (mô hình gợi ý ngành học và xếp hạng trường đại học)
+Xây dựng giao diện Web Application và tích hợp hệ thống AI
+Chức năng 1:
+ Phân tích hồ sơ và tính cách người dùng (Holland Code / Big Five)
+Chức năng 2:
+ Dự đoán và gợi ý ngành học phù hợp với học sinh
+C
+hức năng 3:
+ Gợi ý trường đại học và đánh giá khả năng trúng tuyển
+CLO3
+3.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+7
+Triển khai trên dữ liệu thực tế
+CLO4
+0.5
+8
+Đánh giá
+ thực nghiệm ứng dụng, phân tích ưu điểm, hạn chế:
+- Đánh giá kết quả thực nghiệm đa tiêu chí.
+- So sánh kết quả thực nghiệm với các mô hình/thuật toán khác; đề xuất hướng phát triển
+CLO3
+1.0
+0.5
+0.5
+6
+Nội dung kiến thức trình bày trong quyển báo cáo
+CLO5.1
+0.
+2
+5
+7
+Hình thức, định dạng quyển báo cáo
+CLO5.1
+0.
+2
+5
+8
+Thái độ, tác phong làm việc
+, nộp bài đúng hạn
+CLO6
+0.
+2
+5
+9
+Phong cách báo cáo, trả lời câu hỏi, thiết kế slide
+CLO5.2
+0.
+2
+5
+10
+Có công trình nghiên cứu, liên quan tới nội dung đề tài (tài (tổng điểm chung không vượt quá 10 điểm)
+Thi SV NCKH đạt giải cấp khoa hoặc có bài báo đăng hội thảo cấp Khoa.
+Thi SV NCKH đạt giải cấp trường hoặc có bài báo đăng tạp chí khoa học cấp Trường trở lên
+0.5
+1.0
+Tổng cộng
+10.0
+Thời gian và các công việc trong tuần
+:
+Tuần
+Nội dung công việc
+Tìm hiểu yêu cầu đề tài, xác định phạm vi nghiên cứu, lập kế hoạch thực hiện
+Khảo sát các công trình nghiên cứu liên quan và hệ thống tư vấn hướng nghiệp hiện có
+Thu thập dữ liệu điểm chuẩn các trường đại học và dữ liệu ngành học
+Phân tích dữ liệu và thiết kế cấu trúc dataset
+Thiết kế bài test tính cách nghề nghiệp (Holland Code hoặc Big Five)
+Tiền xử lý dữ liệu và xây dựng vector đặc trưng cho hồ sơ học sinh
+Xây dựng mô hình baseline cho hệ thống gợi ý
+Xây dựng mô hình Transformer cho hệ thống gợi ý ngành học
+Tích hợp thuật toán MCDM để xếp hạng các trường đại học
+Xây dựng hệ thống trợ lý ảo sử dụng LLM và RAG
+Phát triển Web Application và dashboard hiển thị kết quả gợi ý, tích hợp mô hình
+Hoàn chỉnh báo cáo.
+Thiết kế bài báo cáo trên PowerPoint.
+Nộp báo cáo
+.
+Tài liệu tham khảo
+M
+aking Vocational Choices: A Theory of Vocational Personalities and Work Environments. Psychological Assessment Resources.
+.
+Vaswani, A., Shazeer, N., Parmar, N., et al. (2017). Attention Is All You Need. Advances in Neural Information Processing Systems (NeurIPS)
+.
+Paszke, A., Gross, S., Massa, F., et al. (2019). PyTorch: An Imperative Style, High-Performance Deep Learning Library. NeurIPS.
+Ricci, F., Rokach, L., & Shapira, B. (2022). 
+Recommender Systems Handbook
+. Springer.
+Aggarwal, C. C. (2016). 
+Recommender Systems: The Textbook
+. Springer.
+Lewis, P., Perez, E., Piktus, A., et al. (2020). 
+Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks
+. Advances in Neural Information Processing Systems (NeurIPS).
+Brown, T., Mann, B., Ryder, N., et al. (2020). 
+Language Models are Few-Shot Learners
+. Advances in Neural Information Processing Systems (NeurIPS).
+Manning, C. D., Raghavan, P., & Schütze, H. (2008). 
+Introduction to Information Retrieval
+. Cambridge University Press.
+Goodfellow, I., Bengio, Y., & Courville, A. (2016). 
+Deep Learning
+. MIT Press.
+Zhang, S., Yao, L., Sun, A., & Tay, Y. (2019). 
+Deep Learning Based Recommender System: A Survey and New Perspectives
+. ACM Computing Surveys.
+Một số yêu cầu khác
+Số lượng SV tối đa thực hiện đề tài: 3 sinh viên.
+Có khả năng và tư duy lập trình, đọc hiểu tiếng Anh,…
+Gặp giảng viên hướng dẫn ít nhất 1 lần/tuần, thực hiện đề tài theo sự phân công của giảng viên hướng dẫn. Trước mỗi buổi báo cáo, sinh viên phải tích hợp những nội dung được phân công vào chung trong một tài liệu/ phần mềm.
+Tp.HCM, ngày … tháng.....năm 202
+Trưởng 
+bộ
+ môn
+Giảng viên hướng dẫn
+(ký và ghi rõ họ tên)
+(ký và ghi rõ họ tên)

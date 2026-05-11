@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ưu tiên của bạn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.45s ease forwards; }
+
+        /* Drag & Drop */
+        .drag-item {
+            cursor: grab;
+            transition: box-shadow 0.2s, transform 0.15s, background 0.15s;
+            user-select: none;
+        }
+        .drag-item:active { cursor: grabbing; }
+        .drag-item.dragging {
+            opacity: 0.4;
+            transform: scale(0.97);
+        }
+        .drag-item.drag-over {
+            box-shadow: 0 0 0 2px #3b82f6;
+            background: #eff6ff !important;
+        }
+
+        /* Rank badge */
+        .rank-badge {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 900;
+            flex-shrink: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #e2e8f0; color: #475569; }
+        .rank-3 { background: #f97316; color: #fff; }
+        .rank-4 { background: #f1f5f9; color: #94a3b8; }
+
+        /* City chips */
+        .city-chip {
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 2px solid #e2e8f0;
+        }
+        .city-chip.active {
+            border-color: #6366f1;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        /* Type btn */
+        .type-btn {
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 2px solid #e2e8f0;
+        }
+        .type-btn.active {
+            border-color: #0ea5e9;
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* Region btn */
+        .region-btn {
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 2px solid #e2e8f0;
+        }
+        .region-btn.active {
+            border-color: #10b981;
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        #city-panel {
+            max-height: 0; opacity: 0; overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+        }
+        #city-panel.open { max-height: 300px; opacity: 1; }
+
+        .step-done   { background: #22c55e; color: #fff; }
+        .step-active { background: #3b82f6; color: #fff; }
+        .step-idle   { background: #e2e8f0; color: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+
+    <!-- Step bar -->
+    <div class="fixed top-0 left-0 right-0 bg-white border-b border-slate-100 z-40 px-6 py-3 flex items-center gap-3 shadow-sm">
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-done flex items-center justify-center text-[9px]">✓</span>
+            <span class="text-slate-400 hidden sm:inline">Tính cách</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-done flex items-center justify-center text-[9px]">✓</span>
+            <span class="text-slate-400 hidden sm:inline">Điểm thi</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-active flex items-center justify-center text-[9px]">3</span>
+            <span class="text-blue-600 hidden sm:inline">Ưu tiên</span>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span class="w-6 h-6 rounded-full step-idle flex items-center justify-center text-[9px]">4</span>
+            <span class="text-slate-300 hidden sm:inline">Kết quả</span>
+        </div>
+    </div>
+
+    <div class="max-w-xl mx-auto mt-20 fade-up">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <span class="bg-indigo-100 text-indigo-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Bước 3: Sở thích</span>
+            <h1 class="text-3xl font-black text-slate-800 mt-3 tracking-tight">Điều gì quan trọng<br>với bạn nhất?</h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium">Kéo thả để sắp xếp theo thứ tự ưu tiên — hệ thống sẽ xếp hạng trường phù hợp nhất trước.</p>
+        </div>
+
+        <form method="POST" action="/preference" id="pref-form">
+            <!-- Hidden inputs -->
+            <input type="hidden" name="priority_order" id="priority_order" value="">
+            <input type="hidden" name="preferred_region" id="preferred_region" value="">
+            <input type="hidden" name="preferred_city"   id="preferred_city"   value="">
+            <input type="hidden" name="preferred_type"   id="preferred_type"   value="">
+
+            <!-- ── DRAG & DROP LIST ── -->
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-5">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Kéo để sắp xếp theo mức ưu tiên</p>
+
+                <ul id="drag-list" class="space-y-3">
+                    <li class="drag-item bg-slate-50 rounded-2xl p-4 flex items-center gap-4 border border-slate-100"
+                        draggable="true" data-key="chat_luong">
+                        <span class="rank-badge rank-1">1</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-black text-slate-800 text-sm">🎓 Chất lượng đào tạo</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Điểm chuẩn & xác suất đỗ</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                        </svg>
+                    </li>
+                    <li class="drag-item bg-slate-50 rounded-2xl p-4 flex items-center gap-4 border border-slate-100"
+                        draggable="true" data-key="loai_truong">
+                        <span class="rank-badge rank-2">2</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-black text-slate-800 text-sm">🏛️ Loại trường</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Công lập / Tư thục</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                        </svg>
+                    </li>
+                    <li class="drag-item bg-slate-50 rounded-2xl p-4 flex items-center gap-4 border border-slate-100"
+                        draggable="true" data-key="vung_mien">
+                        <span class="rank-badge rank-3">3</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-black text-slate-800 text-sm">📍 Vùng miền</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Khu vực địa lý mong muốn</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                        </svg>
+                    </li>
+                    <li class="drag-item bg-slate-50 rounded-2xl p-4 flex items-center gap-4 border border-slate-100"
+                        draggable="true" data-key="tinh_thanh">
+                        <span class="rank-badge rank-4">4</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-black text-slate-800 text-sm">🏙️ Tỉnh / Thành phố</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Thành phố cụ thể mong muốn</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ── CHỌN VÙNG MIỀN ── -->
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-5">
+                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1">Địa lý</p>
+                <h2 class="text-base font-black text-slate-800 mb-4">Bạn muốn học ở vùng nào?</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button type="button" class="region-btn rounded-2xl py-3 text-sm font-bold text-slate-500 text-center" data-value="Miền Bắc" onclick="toggleRegion(this)">🏔️<br><span class="text-xs">Miền Bắc</span></button>
+                    <button type="button" class="region-btn rounded-2xl py-3 text-sm font-bold text-slate-500 text-center" data-value="Miền Trung" onclick="toggleRegion(this)">🌊<br><span class="text-xs">Miền Trung</span></button>
+                    <button type="button" class="region-btn rounded-2xl py-3 text-sm font-bold text-slate-500 text-center" data-value="Miền Nam" onclick="toggleRegion(this)">🌆<br><span class="text-xs">Miền Nam</span></button>
+                    <button type="button" class="region-btn rounded-2xl py-3 text-sm font-bold text-slate-500 text-center" data-value="Miền Tây" onclick="toggleRegion(this)">🌾<br><span class="text-xs">Miền Tây</span></button>
+                </div>
+
+                <!-- Tỉnh/thành phố -->
+                <div id="city-panel">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5 mb-3">Tỉnh / Thành phố cụ thể <span class="text-slate-300 font-medium normal-case">(tuỳ chọn)</span></p>
+                    <div id="city-list" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            <!-- ── CHỌN LOẠI TRƯỜNG ── -->
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8">
+                <p class="text-[10px] font-black uppercase tracking-widest text-sky-500 mb-1">Hình thức</p>
+                <h2 class="text-base font-black text-slate-800 mb-4">Bạn muốn loại trường nào?</h2>
+                <div class="grid grid-cols-3 gap-3">
+                    <button type="button" class="type-btn rounded-2xl py-4 text-sm font-bold text-slate-500 text-center" data-value="Công lập" onclick="toggleType(this)">🏛️<br><span class="text-xs">Công lập</span></button>
+                    <button type="button" class="type-btn rounded-2xl py-4 text-sm font-bold text-slate-500 text-center" data-value="Tư thục" onclick="toggleType(this)">🏢<br><span class="text-xs">Tư thục</span></button>
+                    <button type="button" class="type-btn active rounded-2xl py-4 text-sm font-bold text-slate-500 text-center" data-value="" onclick="toggleType(this)">🔀<br><span class="text-xs">Tất cả</span></button>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pb-10">
+                <a href="/score" class="bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-500 font-black py-4 px-5 rounded-2xl transition text-sm flex-shrink-0">
+                    ← Quay lại
+                </a>
+                <button type="button" onclick="skipPreference()"
+                    class="text-slate-400 hover:text-slate-600 font-bold py-4 px-4 rounded-2xl transition text-sm underline underline-offset-4 flex-shrink-0">
+                    Bỏ qua
+                </button>
+                <button type="submit" onclick="submitForm()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 active:scale-95 text-sm">
+                    XEM KẾT QUẢ AI 🚀
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // ── Dữ liệu tỉnh theo vùng ──
+        const cityMap = {
+            'Miền Bắc':  ['Hà Nội','Hải Phòng','Bắc Ninh','Thái Nguyên','Nam Định','Hưng Yên','Quảng Ninh','Vĩnh Phúc'],
+            'Miền Trung':['Đà Nẵng','Huế','Nghệ An','Hà Tĩnh','Quảng Nam','Quảng Ngãi','Bình Định','Khánh Hòa'],
+            'Miền Nam':  ['TP. Hồ Chí Minh','Bình Dương','Đồng Nai','Bà Rịa - Vũng Tàu','Long An','Tây Ninh'],
+            'Miền Tây':  ['Cần Thơ','An Giang','Kiên Giang','Tiền Giang','Đồng Tháp','Vĩnh Long','Bến Tre'],
+        };
+
+        // ── Drag & Drop ──
+        const list = document.getElementById('drag-list');
+        let dragSrc = null;
+
+        list.addEventListener('dragstart', e => {
+            dragSrc = e.target.closest('li');
+            dragSrc.classList.add('dragging');
+        });
+        list.addEventListener('dragend', e => {
+            e.target.closest('li').classList.remove('dragging');
+            document.querySelectorAll('.drag-item').forEach(el => el.classList.remove('drag-over'));
+            updateRankBadges();
+        });
+        list.addEventListener('dragover', e => {
+            e.preventDefault();
+            const target = e.target.closest('li');
+            if (!target || target === dragSrc) return;
+            document.querySelectorAll('.drag-item').forEach(el => el.classList.remove('drag-over'));
+            target.classList.add('drag-over');
+            const rect = target.getBoundingClientRect();
+            const mid  = rect.top + rect.height / 2;
+            if (e.clientY < mid) list.insertBefore(dragSrc, target);
+            else list.insertBefore(dragSrc, target.nextSibling);
+        });
+        list.addEventListener('drop', e => e.preventDefault());
+
+        // Touch support (mobile)
+        let touchItem = null, touchClone = null;
+        list.addEventListener('touchstart', e => {
+            touchItem = e.target.closest('li');
+            if (!touchItem) return;
+            touchItem.classList.add('dragging');
+        }, {passive: true});
+        list.addEventListener('touchmove', e => {
+            if (!touchItem) return;
+            const touch = e.touches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const target = el ? el.closest('li') : null;
+            if (target && target !== touchItem) {
+                const rect = target.getBoundingClientRect();
+                if (touch.clientY < rect.top + rect.height / 2) list.insertBefore(touchItem, target);
+                else list.insertBefore(touchItem, target.nextSibling);
+            }
+        }, {passive: true});
+        list.addEventListener('touchend', () => {
+            if (touchItem) touchItem.classList.remove('dragging');
+            touchItem = null;
+            updateRankBadges();
+        });
+
+        const rankClasses = ['rank-1','rank-2','rank-3','rank-4'];
+        function updateRankBadges() {
+            document.querySelectorAll('#drag-list li').forEach((li, i) => {
+                const badge = li.querySelector('.rank-badge');
+                badge.className = 'rank-badge ' + (rankClasses[i] || 'rank-4');
+                badge.textContent = i + 1;
+            });
+        }
+
+        function getPriorityOrder() {
+            return Array.from(document.querySelectorAll('#drag-list li'))
+                        .map(li => li.dataset.key)
+                        .join(',');
+        }
+
+        // ── Chọn vùng ──
+        let selectedRegion = '';
+        function toggleRegion(btn) {
+            const val = btn.dataset.value;
+            if (selectedRegion === val) {
+                selectedRegion = '';
+                document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('preferred_region').value = '';
+                closeCities();
+            } else {
+                document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedRegion = val;
+                document.getElementById('preferred_region').value = val;
+                renderCities(val);
+            }
+        }
+
+        function renderCities(region) {
+            const cities = cityMap[region] || [];
+            const listEl = document.getElementById('city-list');
+            document.getElementById('preferred_city').value = '';
+            listEl.innerHTML = cities.map(c =>
+                `<button type="button" class="city-chip rounded-xl px-3 py-1.5 text-xs font-bold text-slate-500"
+                    data-value="${c}" onclick="toggleCity(this)">${c}</button>`
+            ).join('');
+            document.getElementById('city-panel').classList.add('open');
+        }
+
+        function closeCities() {
+            document.getElementById('city-panel').classList.remove('open');
+            document.getElementById('preferred_city').value = '';
+        }
+
+        function toggleCity(btn) {
+            document.querySelectorAll('.city-chip').forEach(b => b.classList.remove('active'));
+            const val = btn.dataset.value;
+            const cur = document.getElementById('preferred_city').value;
+            if (cur === val) {
+                document.getElementById('preferred_city').value = '';
+            } else {
+                btn.classList.add('active');
+                document.getElementById('preferred_city').value = val;
+            }
+        }
+
+        // ── Chọn loại trường ──
+        function toggleType(btn) {
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('preferred_type').value = btn.dataset.value;
+        }
+
+        // ── Submit ──
+        function submitForm() {
+            document.getElementById('priority_order').value = getPriorityOrder();
+        }
+
+        // ── Bỏ qua → weights mặc định ──
+        function skipPreference() {
+            document.getElementById('priority_order').value = 'chat_luong,loai_truong,vung_mien,tinh_thanh';
+            document.getElementById('preferred_region').value = '';
+            document.getElementById('preferred_city').value = '';
+            document.getElementById('preferred_type').value = '';
+            document.getElementById('pref-form').submit();
+        }
+    </script>
+</body>
+</html>
