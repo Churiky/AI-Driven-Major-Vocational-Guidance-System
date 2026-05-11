@@ -203,19 +203,18 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Mục tiêu gần nhất</span>
-                        <span class="text-xs font-black text-rose-600 bg-rose-50 px-3 py-1 rounded-full">Target</span>
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6" id="top-school-container">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Hồ sơ nổi bật</h3>
                     </div>
                     {% if dashboard_data.top_school %}
-                    <div class="rounded-2xl bg-gradient-to-br from-blue-600 to-slate-900 text-white p-5">
+                    <div id="top-school-card" class="rounded-2xl bg-gradient-to-br from-blue-600 to-slate-900 text-white p-5">
                         <p class="text-sm font-black uppercase tracking-widest text-blue-100">Trường nên xem trước</p>
-                        <h4 class="text-xl font-black mt-3 leading-tight">{{ dashboard_data.top_school.Truong }}</h4>
-                        <p class="text-sm text-blue-100 mt-2 leading-relaxed">{{ dashboard_data.top_school.Nganh }}</p>
+                        <h4 class="school-name text-xl font-black mt-3 leading-tight">{{ dashboard_data.top_school.Truong }}</h4>
+                        <p class="school-major text-sm text-blue-100 mt-2 leading-relaxed">{{ dashboard_data.top_school.Nganh }}</p>
                         <div class="flex items-center gap-3 mt-4 text-xs font-bold">
-                            <span class="bg-white/15 px-3 py-1 rounded-full">Khối {{ dashboard_data.top_school.Block }}</span>
-                            <span class="bg-white/15 px-3 py-1 rounded-full">{{ dashboard_data.top_school.Prob }}%</span>
+                            <span class="school-block bg-white/15 px-3 py-1 rounded-full">Khối {{ dashboard_data.top_school.Block }}</span>
+                            <span class="school-prob bg-white/15 px-3 py-1 rounded-full">{{ dashboard_data.top_school.Prob }}%</span>
                         </div>
                     </div>
                     {% endif %}
@@ -308,19 +307,19 @@
 
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">04. Trường Mục Tiêu</p>
-                    <div class="space-y-3">
+                    <div class="space-y-3" id="target-schools-container">
                         {% for node in career_map.target_schools %}
-                        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <div class="target-school-node rounded-2xl border border-slate-100 bg-slate-50 p-4">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <p class="text-sm font-black text-slate-800 leading-tight">{{ node.school }}</p>
-                                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ node.major }}</p>
+                                    <p class="school-name text-sm font-black text-slate-800 leading-tight">{{ node.school }}</p>
+                                    <p class="school-major text-xs text-slate-500 mt-1 leading-relaxed">{{ node.major }}</p>
                                 </div>
-                                <span class="text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1">{{ node.probability }}%</span>
+                                <span class="school-prob text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1">{{ node.probability }}%</span>
                             </div>
                             <div class="flex items-center gap-2 mt-3 text-[11px] font-bold text-slate-500">
-                                <span class="px-2.5 py-1 rounded-full bg-white border border-slate-200">Khối {{ node.block }}</span>
-                                <span class="px-2.5 py-1 rounded-full bg-white border border-slate-200">{{ node.label }}</span>
+                                <span class="school-block px-2.5 py-1 rounded-full bg-white border border-slate-200">Khối {{ node.block }}</span>
+                                <span class="school-label px-2.5 py-1 rounded-full bg-white border border-slate-200">{{ node.label }}</span>
                             </div>
                         </div>
                         {% endfor %}
@@ -335,13 +334,35 @@
                     <span class="text-2xl">🎓</span> Danh sách trường Đại học gợi ý cho bạn
                 </h3>
 
-                <div class="flex items-center gap-3 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase ml-2">Lọc kết quả:</span>
-                    <select id="university-filter" onchange="filterSchools()" class="bg-white border-none text-sm font-bold text-slate-700 py-2 px-4 rounded-lg shadow-sm outline-none cursor-pointer">
-                        <option value="all">⭐ Trường Top(Top 10)</option>
-                        <option value="kham_pha">🚀 Khả năng </option>
-                        <option value="chac_chan">🛡️ Chắc chắn </option>
-                    </select>
+                <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                    <div class="flex items-center gap-2 border-r pr-3 border-slate-200">
+                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Mức độ:</span>
+                        <select id="filter-chance" onchange="filterSchools()" class="bg-white border-none text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg shadow-sm outline-none cursor-pointer">
+                            <option value="all">Tất cả khả năng</option>
+                            <option value="An toàn">🛡️ An toàn (Safe)</option>
+                            <option value="Vừa sức">⚡ Vừa sức (Match)</option>
+                            <option value="Tỉ lệ thấp">🚀 Thử thách (Stretch)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Vùng miền:</span>
+                        <select id="filter-region" onchange="filterSchools()" class="bg-white border-none text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg shadow-sm outline-none cursor-pointer">
+                            <option value="all">Tất cả vùng miền</option>
+                            <option value="north">🏔️ Miền Bắc & Miền Núi Phía Bắc</option>
+                            <option value="central">🌊 Miền Trung & Tây Nguyên</option>
+                            <option value="south">🌆 Miền Nam</option>
+                            <option value="west">🌾 Miền Tây</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 border-l pl-3 border-slate-200">
+                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Gợi ý mở rộng:</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="expand-toggle" class="sr-only peer" {% if expand_majors %}checked{% endif %} onchange="toggleExpand()">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                 </div>
             </div>
             
@@ -363,7 +384,12 @@
                             {% for r in results %}
                             <tr class="school-row hover:bg-blue-50/30 transition-colors group"
                                 data-prob="{{ r.Prob }}"
-                                data-cutoff="{{ r.Cutoff }}">
+                                data-cutoff="{{ r.Cutoff }}"
+                                data-danhgia="{{ r.DanhGia }}"
+                                data-region="{{ r.Region }}"
+                                data-truong="{{ r.Truong }}"
+                                data-nganh="{{ r.Nganh }}"
+                                data-block="{{ r.Block }}">
                                 
                                 <td class="p-5 px-8">
                                     <div class="font-bold text-slate-700 group-hover:text-blue-700 transition-colors">{{ r.Truong }}</div>
@@ -471,18 +497,102 @@
 
     <script>
         function filterSchools() {
-            const filterValue = document.getElementById('university-filter').value;
+            const chanceFilter = document.getElementById('filter-chance').value;
+            const regionFilter = document.getElementById('filter-region').value;
             const tbody = document.getElementById('school-body');
             const rows = Array.from(document.querySelectorAll('.school-row'));
-            rows.forEach(row => row.style.display = "none");
-            if (filterValue === 'all') {
-                rows.sort((a, b) => (parseFloat(b.dataset.cutoff) || 0) - (parseFloat(a.dataset.cutoff) || 0));
-                for (let i = 0; i < Math.min(10, rows.length); i++) { rows[i].style.display = ""; tbody.appendChild(rows[i]); }
-            } else if (filterValue === 'kham_pha') {
-                rows.forEach(row => { if (parseFloat(row.dataset.prob) >= 10 && parseFloat(row.dataset.prob) <= 30) row.style.display = ""; });
-            } else if (filterValue === 'chac_chan') {
-                rows.forEach(row => { if (parseFloat(row.dataset.prob) >= 90) row.style.display = ""; });
+            
+            let visibleCount = 0;
+            const maxDisplay = 50; // Hiển thị tối đa 50 trường sau khi lọc
+
+            const regionGroups = {
+                'north': ["Đồng bằng sông Hồng", "Trung du và miền núi phía Bắc"],
+                'central': ["Bắc Trung Bộ", "Duyên hải Nam Trung Bộ và Tây Nguyên"],
+                'south': ["Đông Nam Bộ"],
+                'west': ["Đồng bằng sông Cửu Long"]
+            };
+
+            rows.forEach(row => {
+                const rowChance = row.dataset.danhgia;
+                const rowRegion = row.dataset.region;
+                
+                const matchChance = (chanceFilter === 'all' || rowChance === chanceFilter);
+                
+                let matchRegion = false;
+                if (regionFilter === 'all') {
+                    matchRegion = true;
+                } else {
+                    const targetRegions = regionGroups[regionFilter] || [];
+                    matchRegion = targetRegions.includes(rowRegion);
+                }
+                
+                if (matchChance && matchRegion && visibleCount < maxDisplay) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            // --- CẬP NHẬT ĐỘNG PHẦN TARGET SCHOOLS VÀ TOP CARD ---
+            const visibleRows = rows.filter(r => r.style.display !== 'none');
+            if (visibleRows.length > 0) {
+                // 1. Cập nhật Top Card
+                const topSchool = visibleRows[0].dataset;
+                const topCard = document.getElementById('top-school-card');
+                if (topCard) {
+                    topCard.querySelector('.school-name').textContent = topSchool.truong;
+                    topCard.querySelector('.school-major').textContent = topSchool.nganh;
+                    topCard.querySelector('.school-block').textContent = "Khối " + topSchool.block;
+                    topCard.querySelector('.school-prob').textContent = topSchool.prob + "%";
+                }
+
+                // 2. Cập nhật Target Schools (Trường mục tiêu)
+                const targetContainer = document.getElementById('target-schools-container');
+                if (targetContainer) {
+                    const targetNodes = targetContainer.querySelectorAll('.target-school-node');
+                    // Chúng ta lấy tối đa 3 trường tiếp theo sau trường top
+                    for (let i = 0; i < targetNodes.length; i++) {
+                        const schoolIdx = i + 1; // Bắt đầu từ trường thứ 2 trong danh sách hiển thị
+                        if (visibleRows[schoolIdx]) {
+                            const s = visibleRows[schoolIdx].dataset;
+                            targetNodes[i].style.opacity = "1";
+                            targetNodes[i].querySelector('.school-name').textContent = s.truong;
+                            targetNodes[i].querySelector('.school-major').textContent = s.nganh;
+                            targetNodes[i].querySelector('.school-prob').textContent = s.prob + "%";
+                            targetNodes[i].querySelector('.school-block').textContent = "Khối " + s.block;
+                            targetNodes[i].querySelector('.school-label').textContent = s.danhgia;
+                        } else {
+                            targetNodes[i].style.opacity = "0.3"; // Làm mờ nếu không đủ trường
+                        }
+                    }
+                }
             }
+            
+            // Nếu không có kết quả nào thỏa mãn
+            const noResultRow = document.getElementById('no-result-row');
+            if (visibleCount === 0) {
+                if (!noResultRow) {
+                    const tr = document.createElement('tr');
+                    tr.id = 'no-result-row';
+                    const msg = document.getElementById('expand-toggle').checked 
+                        ? "Không tìm thấy trường nào phù hợp với điểm số và vùng miền này."
+                        : "Không tìm thấy trường đào tạo ngành này phù hợp. Hãy thử bật 'Gợi ý mở rộng'!";
+                    tr.innerHTML = `<td colspan="7" class="p-10 text-center text-slate-400">${msg}</td>`;
+                    tbody.appendChild(tr);
+                }
+            } else if (noResultRow) {
+                noResultRow.remove();
+            }
+        }
+
+        function toggleExpand() {
+            const isChecked = document.getElementById('expand-toggle').checked;
+            const url = new URL(window.location.href);
+            url.searchParams.set('expand', isChecked ? '1' : '0');
+            // Thêm hiệu ứng loading đơn giản
+            document.body.style.opacity = "0.6";
+            window.location.href = url.href;
         }
 
         async function sendToAI() {

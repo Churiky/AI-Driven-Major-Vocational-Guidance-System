@@ -426,13 +426,31 @@ def result():
 
     best_major_raw = labels[top_idxs[0][0].item()]
     best_major_pretty = MAJOR_MAPPING.get(best_major_raw, best_major_raw)
-    raw_results = recommender.recommend(best_major_raw, s)
+    
+    # Lấy các tùy chọn ưu tiên từ session (Vùng miền, Tỉnh thành, Loại trường, Thứ tự kéo thả)
+    pref = session.get('preferences', {})
+    preferred_region = pref.get('region')
+    preferred_city   = pref.get('city')
+    preferred_type   = pref.get('type')
+    priority_order   = pref.get('priority_order')
+    
+    expand_majors = request.args.get('expand', '0') == '1'
+    
+    raw_results = recommender.recommend(
+        best_major_raw, s, 
+        preferred_region=preferred_region,
+        preferred_city=preferred_city,
+        preferred_type=preferred_type,
+        priority_order=priority_order,
+        expand_majors=expand_majors
+    )
     dashboard_data, career_map = build_dashboard_payload(h, s, top_predictions, raw_results)
 
     return render_template("result.html", 
                            major=best_major_pretty, 
                            display_probs=display_probs, 
                            results=raw_results,
+                           expand_majors=expand_majors,
                            holland_data=h,
                            dashboard_data=dashboard_data,
                            career_map=career_map)
