@@ -74,6 +74,7 @@ class UniversityRecommender:
         # 5. Load điểm chất lượng đào tạo từ data_da_hop_nhat.csv
         self.quality_scores = {}
         self.school_regions = {}
+        self.school_types = {}
         quality_path = os.path.join(os.path.dirname(path), 'data_da_hop_nhat.csv')
         if os.path.exists(quality_path):
             try:
@@ -87,6 +88,9 @@ class UniversityRecommender:
                         # Lưu thêm vùng miền nếu có
                         if 'Vị trí địa lý' in df_quality.columns:
                             self.school_regions[norm_name] = str(row_q['Vị trí địa lý']).strip()
+                        # Lưu thêm loại trường (Công lập/Tư thục)
+                        if 'Loại trường' in df_quality.columns:
+                            self.school_types[norm_name] = str(row_q['Loại trường']).strip()
             except Exception as e:
                 print(f"Không thể tải điểm chất lượng: {e}")
 
@@ -159,11 +163,89 @@ class UniversityRecommender:
     # Recommend
     # -----------------------------------------------------------------------
 
+    # -----------------------------------------------------------------------
+    # TOPSIS - MCDM Core Logic
+    # -----------------------------------------------------------------------
+
+    def _calculate_topsis_weights(self, priority_order):
+        """
+        Chuyển đổi thứ tự ưu tiên thành bộ trọng số.
+        Thứ tự mặc định: Level_Match, Region_Match, Type_Match, City_Match, Quality_Score, Major_Score, Close_Match
+        """
+        criteria = ['Level_Match', 'Region_Match', 'Type_Match', 'City_Match', 'Quality_Score', 'Major_Score', 'Close_Match']
+        weights = {c: 0.05 for c in criteria} # Trọng số mặc định tối thiểu
+
+        if priority_order:
+            # Mapping từ key giao diện sang key nội bộ
+            key_map = {
+                'chat_luong': 'Level_Match',
+                'vung_mien': 'Region_Match',
+                'loai_truong': 'Type_Match',
+                'tinh_thanh': 'City_Match'
+            }
+            
+            # Phân bổ trọng số theo thứ tự (40%, 25%, 15%, 10%)
+            priority_weights = [0.40, 0.25, 0.15, 0.10]
+            ordered_keys = [k.strip() for k in priority_order.split(',') if k.strip() in key_map]
+            
+            for i, key in enumerate(ordered_keys):
+                if i < len(priority_weights):
+                    internal_key = key_map[key]
+                    weights[internal_key] = priority_weights[i]
+
+        # Chuẩn hóa để tổng trọng số bằng 1
+        total_w = sum(weights.values())
+        return {k: v / total_w for k, v in weights.items()}
+
+    def _compute_topsis(self, df, weights):
+        """
+        Thực hiện các bước toán học của TOPSIS.
+        """
+        if df.empty:
+            return df
+
+        # 1. Chuẩn bị ma trận quyết định (Decision Matrix)
+        criteria = list(weights.keys())
+        matrix = df[criteria].values.astype(float)
+
+        # 2. Chuẩn hóa ma trận (Vector Normalization)
+        # Tránh chia cho 0 nếu một cột có tất cả giá trị bằng 0
+        norm = np.sqrt(np.sum(matrix**2, axis=0))
+        norm[norm == 0] = 1e-9
+        norm_matrix = matrix / norm
+
+        # 3. Nhân trọng số (Weighted Normalization)
+        w_array = np.array([weights[c] for c in criteria])
+        weighted_matrix = norm_matrix * w_array
+
+        # 4. Xác định giải pháp lý tưởng Tốt (+) và Xấu (-)
+        # Tất cả các tiêu chí của chúng ta đều là Benefit (càng cao càng tốt)
+        ideal_best = np.max(weighted_matrix, axis=0)
+        ideal_worst = np.min(weighted_matrix, axis=0)
+
+        # 5. Tính khoảng cách Euclid tới giải pháp lý tưởng
+        dist_best = np.sqrt(np.sum((weighted_matrix - ideal_best)**2, axis=1))
+        dist_worst = np.sqrt(np.sum((weighted_matrix - ideal_worst)**2, axis=1))
+
+        # 6. Tính điểm Closeness Coefficient (Ci)
+        # Ci = dw / (db + dw)
+        # Tránh chia cho 0
+        total_dist = dist_best + dist_worst
+        total_dist[total_dist == 0] = 1e-9
+        topsis_scores = dist_worst / total_dist
+
+        df['TOPSIS_Score'] = topsis_scores
+        return df
+
+    # -----------------------------------------------------------------------
+    # Recommend
+    # -----------------------------------------------------------------------
+
     def recommend(self, nganh_key, user_scores, weights=None, preferred_region=None, preferred_city=None, preferred_type=None, priority_order=None, expand_majors=False):
         """
-        Pipeline chính hỗ trợ ưu tiên động: Theo thứ tự người dùng kéo thả.
+        Pipeline chính sử dụng thuật toán TOPSIS để xếp hạng.
         """
-        # Bảng ánh xạ vùng miền chuẩn theo dữ liệu CSV thực tế
+        # Bảng ánh xạ vùng miền
         region_map = {
             "Miền Bắc": ["Đồng bằng sông Hồng", "Trung du và miền núi phía Bắc"],
             "Miền Trung": ["Bắc Trung Bộ", "Duyên hải Nam Trung Bộ và Tây Nguyên"],
@@ -185,28 +267,22 @@ class UniversityRecommender:
         recommendations = []
 
         for _, row in self.df.iterrows():
-            # --- BƯỚC 1: LỌC ĐIỂM CHUẨN ---
+            # --- BƯỚC 1: LỌC ĐIỂM CHUẨN & NGÀNH ---
             try:
                 cutoff = float(row[col_cutoff])
             except (ValueError, TypeError): continue
             if cutoff > 35: continue
 
-            # --- BƯỚC 2: LỌC NGÀNH ---
             ten_nganh_raw = str(self._get(row, [col_nganh] if col_nganh else [], ""))
             ten_nganh_clean = self._clean_text(ten_nganh_raw)
             
-            major_score = 0
-            # Nếu không ở chế độ mở rộng, lọc khắt khe theo keywords AI
-            if not expand_majors:
-                if not any(k in ten_nganh_clean for k in keywords): 
-                    continue
-                # Tính độ ưu tiên ngành: nếu tên ngành chứa chính xác từ khóa chính thì điểm cao
-                major_score = 100 if any(k == ten_nganh_clean for k in keywords) else 50
-            else:
-                # Chế độ mở rộng: ưu tiên ngành đúng nhưng không loại bỏ ngành khác
-                major_score = 100 if any(k in ten_nganh_clean for k in keywords) else 0
+            # Filter by major keyword
+            is_match = any(k in ten_nganh_clean for k in keywords)
+            if not is_match: continue
+            
+            major_score = 1.0 if any(k == ten_nganh_clean for k in keywords) else 0.5
 
-            # --- BƯỚC 3: TÍNH ĐIỂM ---
+            # --- BƯỚC 2: TÍNH ĐIỂM TỔ HỢP ---
             to_hop_raw = str(row[col_tohop])
             sep = ";" if ";" in to_hop_raw else ","
             blocks = [b.strip() for b in to_hop_raw.split(sep)]
@@ -224,132 +300,82 @@ class UniversityRecommender:
             current_score = best_score
             current_prob = self.predictor.predict(current_score, cutoff)
 
+            # --- BƯỚC 3: CHUẨN BỊ TIÊU CHÍ CHO TOPSIS ---
             diff = current_score - cutoff
-            if diff >= 1.5: current_danhgia = "An toàn"
-            elif diff >= -1.5: current_danhgia = "Vừa sức"
-            else: current_danhgia = "Tỉ lệ thấp"
+            current_danhgia = "An toàn" if diff >= 1.5 else ("Vừa sức" if diff >= -1.5 else "Tỉ lệ thấp")
             
-            # Gắn nhãn bổ sung: Các trường cực kỳ sát điểm (±1.5)
-            close_match = 1 if abs(diff) <= 1.5 else 0
+            level_match = 1.0 if current_danhgia in ["An toàn", "Vừa sức"] else 0.2
+            close_match = 1.0 if abs(diff) <= 1.5 else 0.1
 
             ten_truong = str(self._get(row, [col_truong] if col_truong else [], ""))
             norm_name = self._normalize_school_name(ten_truong.strip())
-            quality_score = self.quality_scores.get(norm_name, 0.0)
+            quality_score = float(self.quality_scores.get(norm_name, 0.0))
 
-            # --- XỬ LÝ VÙNG MIỀN (NHẬN DIỆN THÔNG MINH HƠN) ---
             thanh_pho = str(self._get(row, ['Thành phố', 'tinh_thanh_pho', 'Thanh pho'], ""))
-            loai = str(self._get(row, ['Loại trường', 'loai_truong'], ""))
-            ten_truong = str(self._get(row, [col_truong] if col_truong else [], ""))
+            # Ưu tiên lấy loại trường từ file data_da_hop_nhat.csv đã chuẩn hóa
+            loai_raw = self.school_types.get(norm_name, str(self._get(row, ['Loại trường', 'loai_truong'], "Công lập")))
             
-            region_val = "Khác"
-            # Gộp cả Tỉnh/Thành phố và Tên trường để tìm kiếm từ khóa
-            text_to_search = self._clean_text(thanh_pho + " " + ten_truong)
+            # Chuẩn hóa loại trường thành 3 nhóm chuẩn: Công lập, Tư thục, Quốc tế
+            loai = "Công lập"
+            loai_lower = loai_raw.lower()
+            if any(kw in loai_lower for kw in ["quốc tế", "quoc te"]): 
+                loai = "Quốc tế"
+            elif any(kw in loai_lower for kw in ["tư thục", "tu thuc", "dân lập", "dan lap", "tư nhân"]):
+                loai = "Tư thục"
+            elif any(kw in loai_lower for kw in ["công", "cong"]):
+                loai = "Công lập"
             
-            # Danh sách từ khóa mở rộng cho từng vùng miền
-            north_keywords = [
-                'ha noi', 'hai phong', 'thai nguyen', 'nam dinh', 'bac ninh', 'vinh phuc', 'phu tho', 
-                'quang ninh', 'hai duong', 'hung yen', 'bac giang', 'ha nam', 'ninh binh', 'thai binh',
-                'hoa binh', 'son la', 'dien bien', 'lai chau', 'lao cai', 'yen bai', 'tuyen quang', 
-                'lang son', 'cao bang', 'ha giang', 'bac kan', 'bac bo', 'tay bac', 'dong bac',
-                'hn', 'hp', 'tn', 'nd', 'bn', 'vp', 'pt', 'qn', 'hd', 'hy', 'bg', 'hn', 'nb', 'tb'
-            ]
-            central_keywords = [
-                'da nang', 'hue', 'nghe an', 'thanh hoa', 'nha trang', 'binh dinh', 'quang nam', 
-                'quang ngai', 'quang tri', 'quang binh', 'ha tinh', 'phu yen', 'ninh thuan', 'binh thuan',
-                'kon tum', 'gia lai', 'dak lak', 'dak nong', 'lam dong', 'da lat', 'tay nguyen', 'mien trung'
-            ]
-            south_keywords = [
-                'ho chi minh', 'tp hcm', 'tphcm', 'binh duong', 'dong nai', 'vung tau', 'ba ria', 
-                'tay ninh', 'binh phuoc', 'dong nam bo', 'mien nam'
-            ]
-            west_keywords = [
-                'can tho', 'an giang', 'kien giang', 'vinh long', 'ben tre', 'tra vinh', 'long an', 
-                'dong thap', 'hau giang', 'soc trang', 'bac lieu', 'ca mau', 'tien giang', 
-                'dong bang song cuu long', 'mien tay'
-            ]
-
-            if any(c in text_to_search for c in north_keywords):
-                # Ưu tiên map về 2 vùng lớn ở miền Bắc
-                if any(c in text_to_search for c in ['thai nguyen', 'phu tho', 'son la', 'hoa binh', 'tuyen quang', 'lang son', 'tay bac', 'dong bac']):
-                    region_val = "Trung du và miền núi phía Bắc"
-                else:
-                    region_val = "Đồng bằng sông Hồng"
-            elif any(c in text_to_search for c in south_keywords):
-                region_val = "Đông Nam Bộ"
-            elif any(c in text_to_search for c in central_keywords):
-                if any(c in text_to_search for c in ['kon tum', 'gia lai', 'dak lak', 'dak nong', 'lam dong', 'da lat', 'tay nguyen']):
-                    region_val = "Duyên hải Nam Trung Bộ và Tây Nguyên"
-                else:
-                    region_val = "Bắc Trung Bộ"
-            elif any(c in text_to_search for c in west_keywords):
-                region_val = "Đồng bằng sông Cửu Long"
-            
-            # Nếu vẫn là "Khác", mới lấy từ file chất lượng (mapping theo tên trường)
+            # Nhận diện vùng miền (Ưu tiên lấy từ file đã chuẩn hóa)
+            region_val = self.school_regions.get(norm_name, "Khác")
             if region_val == "Khác":
-                region_val = self.school_regions.get(norm_name, "Khác")
-
-            # 4.1 Khớp vùng miền (So sánh với ưu tiên của người dùng)
-            region_match = 0
-            if preferred_region and preferred_region in region_map:
-                target_regions = region_map[preferred_region]
-                # Nếu region_val khớp với mục tiêu hoặc ngược lại
-                if any((m.lower() in region_val.lower() or region_val.lower() in m.lower()) for m in target_regions):
-                    region_match = 1
+                text_to_search = self._clean_text(thanh_pho + " " + ten_truong)
+                if any(c in text_to_search for c in ['ha noi', 'hai phong', 'bac bo']): 
+                    region_val = "Đồng bằng sông Hồng"
+                elif any(c in text_to_search for c in ['ho chi minh', 'tp hcm', 'dong nam bo']): 
+                    region_val = "Đông Nam Bộ"
+                elif any(c in text_to_search for c in ['da nang', 'hue', 'mien trung']): 
+                    region_val = "Bắc Trung Bộ"
+                elif any(c in text_to_search for c in ['can tho', 'mien tay']): 
+                    region_val = "Đồng bằng sông Cửu Long"
             
-            city_match   = 1 if preferred_city and preferred_city.lower() in thanh_pho.lower() else 0
-            type_match   = 1 if preferred_type and preferred_type.lower() in loai.lower() else 0
-            # Level_Match = 1 nếu là An toàn hoặc Vừa sức (người dùng có khả năng đỗ)
-            level_match  = 1 if current_danhgia in ["An toàn", "Vừa sức"] else 0
+            # Xác định từ khóa vùng miền chuẩn để filter ở frontend (Tránh trùng lặp Bắc/Bắc Trung Bộ)
+            region_key = "Khác"
+            if any(m in region_val for m in ["Đồng bằng sông Hồng", "Trung du và miền núi phía Bắc"]):
+                region_key = "Bac"
+            elif any(m in region_val for m in ["Bắc Trung Bộ", "Duyên hải Nam Trung Bộ và Tây Nguyên"]):
+                region_key = "Trung"
+            elif any(m in region_val for m in ["Đông Nam Bộ"]):
+                region_key = "Nam"
+            elif any(m in region_val for m in ["Đồng bằng sông Cửu Long"]):
+                region_key = "Tay"
+
+            region_match = 1.0 if preferred_region and preferred_region in region_map and \
+                           any((m.lower() in region_val.lower()) for m in region_map[preferred_region]) else 0.0
+            
+            city_match = 1.0 if preferred_city and preferred_city.lower() in thanh_pho.lower() else 0.0
+            type_match = 1.0 if preferred_type and preferred_type.lower() in loai.lower() else 0.0
 
             recommendations.append({
-                "Truong":    ten_truong,
-                "Nganh":     ten_nganh_raw,
-                "Block":     valid_block,
-                "Score":     round(current_score, 2),
-                "Cutoff":    cutoff,
-                "Prob":      current_prob,
-                "DanhGia":   current_danhgia,
-                "Loai":      loai,
-                "ThanhPho":  thanh_pho,
-                "Quality_Score": float(quality_score),
-                "Region":    region_val,
-                "Region_Match": region_match,
-                "City_Match":   city_match,
-                "Type_Match":   type_match,
-                "Level_Match":  level_match,
-                "Close_Match":  close_match,
-                "Major_Score":  major_score
+                "Truong": ten_truong, "Nganh": ten_nganh_raw, "Block": valid_block,
+                "Score": round(current_score, 2), "Cutoff": cutoff, "Prob": current_prob,
+                "DanhGia": current_danhgia, "Loai": loai, "ThanhPho": thanh_pho, "Region": region_val, "Region_Key": region_key,
+                # Fields cho TOPSIS
+                "Level_Match": level_match, "Region_Match": region_match, "Type_Match": type_match,
+                "City_Match": city_match, "Quality_Score": quality_score, "Major_Score": major_score,
+                "Close_Match": close_match
             })
 
         if not recommendations: return []
 
-        # --- BƯỚC 5: XẾP HẠNG ĐỘNG ---
+        # --- BƯỚC 4: THỰC THI TOPSIS ---
         res_df = pd.DataFrame(recommendations)
-        # Mặc định: Chất lượng > Vùng miền > Loại trường > Tỉnh thành
-        sort_keys = ['Level_Match', 'Region_Match', 'Type_Match', 'City_Match']
-        
-        if priority_order:
-            key_map = {
-                'chat_luong': 'Level_Match',
-                'vung_mien': 'Region_Match',
-                'loai_truong': 'Type_Match',
-                'tinh_thanh': 'City_Match'
-            }
-            sort_keys = [key_map.get(k.strip()) for k in priority_order.split(',') if k.strip() in key_map]
-            
-            # Close_Match và Major_Score sẽ là các tiêu chí phụ cuối cùng
-            if 'Major_Score' not in sort_keys:
-                sort_keys.append('Major_Score')
-            if 'Close_Match' not in sort_keys:
-                sort_keys.append('Close_Match')
+        topsis_weights = self._calculate_topsis_weights(priority_order)
+        res_df = self._compute_topsis(res_df, topsis_weights)
 
-        # Luôn thêm Điểm chuẩn và Chất lượng vào cuối để so sánh nếu các tiêu chí trên bằng nhau
-        sort_keys += ['Cutoff', 'Quality_Score']
-
-        top10 = (
-            res_df
-            .sort_values(by=sort_keys, ascending=[False] * len(sort_keys))
-            .head(2000)
+        # Sắp xếp theo TOPSIS_Score và lấy tập dữ liệu đủ lớn cho bộ lọc (1000 trường)
+        top_results = (
+            res_df.sort_values(by='TOPSIS_Score', ascending=False)
+            .head(1000)
             .to_dict('records')
         )
-        return top10
+        return top_results

@@ -1,303 +1,352 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kết quả gợi ý tuyển sinh</title>
+    <title>Kết quả gợi ý tuyển sinh | AI Guidance</title>
+    <!-- Phản hồi dự phòng nếu thư viện CDN lỗi -->
+    <script>
+        window.onerror = function (msg, url, line) {
+            console.error("Global Error: " + msg + " at " + url + ":" + line);
+            return false;
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        /* 1. ĐIỀU CHỈNH LAYOUT ĐỂ TRÁNH ĐÈ NHAU */
-        @media (min-width: 1280px) {
-            .main-wrapper {
-                margin-right: 520px; /* Chừa chỗ cho khung chat 480px + 40px gap */
-                margin-left: 40px;
-                max-width: calc(100% - 560px);
-            }
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-color: #f8fafc;
         }
 
-        /* 2. CỐ ĐỊNH KHUNG CHAT BÊN PHẢI - UPDATE UI THEO ẢNH MẪU */
+        /* 1. DASHBOARD CĂN GIỮA TUYỆT ĐỐI */
+        .main-wrapper {
+            margin: 0 auto !important;
+            max-width: 1400px;
+            width: 95%;
+            padding: 40px 0;
+        }
+
+        /* 2. CỐ ĐỊNH KHUNG CHAT DẠNG OVERLAY */
         #chat-container {
             position: fixed;
             bottom: 25px;
-            right: 25px; 
-            width: 460px; 
+            right: 25px;
+            width: 440px;
             max-width: 35vw;
-            height: 720px; 
+            height: 700px;
             max-height: 85vh;
-            display: flex;
+            display: none; /* Ẩn mặc định, hiện khi nhấn nút */
             flex-direction: column;
-            z-index: 50;
+            z-index: 9999;
             background: #ffffff;
             border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
             border-radius: 2.5rem;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
         }
 
-        /* Tùy chỉnh thanh cuộn tinh tế hơn */
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Nút nổi mở Chat */
+        #chat-toggle-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
+            background: #1e293b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #chat-toggle-btn:hover { transform: scale(1.1); background: #0f172a; }
+
+        /* Tùy chỉnh thanh cuộn */
         #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-track { background: transparent; }
         #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* Style cho tin nhắn AI - Nền xanh nhạt theo ảnh */
-        .ai-bubble {
-            background: #E8F2FE;
-            color: #1e293b;
-            border-radius: 1.5rem;
-            border-top-left-radius: 0.25rem;
-        }
+        .ai-bubble { background: #E8F2FE; color: #1e293b; border-radius: 1.5rem; border-top-left-radius: 0.25rem; }
+        .user-bubble { background: #ffffff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 1.5rem; border-top-right-radius: 0.25rem; }
 
-        /* Style cho tin nhắn User - Nền trắng viền xám theo ảnh */
-        .user-bubble {
-            background: #ffffff;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.5rem;
-            border-top-right-radius: 0.25rem;
-        }
-
-        .chat-content strong { color: #000; font-weight: 800; }
-
-        /* Hiệu ứng dấu chấm nhảy nhót */
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #94a3b8;
-            border-radius: 50%;
-            display: inline-block;
-            animation: typing 1.4s infinite ease-in-out both;
-        }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-6px); }
-        }
-
-        @media (max-width: 1279px) {
-            #chat-container { position: relative; width: 100%; right: 0; max-width: 100%; margin-top: 40px; bottom: 0; }
-            .main-wrapper { margin-right: 0; max-width: 100%; }
-        }
-
+        /* Mũi tên trong Bản đồ nghề nghiệp */
         .career-arrow {
             position: absolute;
             top: 50%;
-            right: -18px;
+            right: -15px;
             transform: translateY(-50%);
-            font-size: 22px;
-            color: #94a3b8;
-            font-weight: 900;
+            font-size: 20px;
+            color: #cbd5e1;
+            z-index: 10;
         }
+        @media (max-width: 1279px) { .career-arrow { display: none; } }
 
-        @media (max-width: 1279px) {
-            .career-arrow { display: none; }
+        /* CSS cho chế độ xuất PDF */
+        .pdf-export-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1440px;
+            background: white;
+            z-index: -1;
+            padding: 40px;
+        }
+        .pdf-export-overlay .no-print { display: none !important; }
+        
+        /* Tối ưu hóa cho in ấn trình duyệt (Native Print) */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print { display: none !important; }
+            .main-wrapper { 
+                width: 100% !important; 
+                max-width: none !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+            }
+            /* Đảm bảo grid hiển thị 2 cột ngay ngắn */
+            .grid, .xl\:grid-cols-4 {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 15px !important;
+            }
+            .school-row, .bg-white.rounded-3xl {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            table {
+                font-size: 9pt !important;
+                width: 100% !important;
+                table-layout: auto !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                padding: 10px 8px !important;
+                word-wrap: break-word !important;
+                vertical-align: middle !important;
+                line-height: 1.4 !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+            
+            /* Ghi đè triệt để font size của Tailwind trong bản in */
+            td, th, .text-base, .text-sm, .text-xs, .text-2xl, .text-xl { 
+                font-size: 9pt !important; 
+            }
+            
+            /* Tỉ lệ cột gợi ý cho trình duyệt */
+            th:nth-child(1), td:nth-child(1) { width: 35%; }
+            th:nth-child(2), td:nth-child(2) { width: 30%; }
+            
+            /* Ngăn chặn chồng chéo */
+            td { white-space: normal !important; overflow: visible !important; }
+            td:last-child { white-space: nowrap !important; font-weight: 800 !important; }
+            
+            /* Ẩn các nút nổi và chat */
+            #chat-toggle-btn, #chat-container { display: none !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 p-4 md:p-8">
-    
+
+<body class="bg-slate-50">
+
     <div class="main-wrapper">
-        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center justify-between border-l-[12px] border-blue-600">
+        <!-- HEADER SECTION (Ảnh 1) -->
+        <div class="bg-white rounded-3xl shadow-sm p-8 mb-8 flex flex-col md:flex-row items-center justify-between border-l-[12px] border-blue-600 relative">
             <div class="text-center md:text-left">
-                <h2 class="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">Ngành phù hợp nhất dựa trên AI</h2>
+                <h2 class="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Ngành phù hợp nhất dựa trên AI</h2>
                 <h1 class="text-4xl font-black text-slate-800 tracking-tight">{{ major }}</h1>
             </div>
-            
-            <div class="mt-6 md:mt-0 flex gap-6 bg-slate-50 p-4 rounded-2xl">
-                {% if display_probs %}
-                    {% for item in display_probs %}
-                    <div class="text-center {% if not loop.first %}border-l pl-6 border-slate-200{% endif %}">
-                        <p class="text-[10px] font-black text-gray-400 uppercase">{{ item.name }}</p>
-                        <p class="text-xl font-extrabold {% if loop.first %}text-blue-600{% else %}text-slate-700{% endif %}">
-                            {{ item.p }}%
-                        </p>
+
+            <div class="flex flex-col md:items-end gap-5 mt-6 md:mt-0">
+                <div class="flex gap-8 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    {% for item in display_probs|default([]) %}
+                    <div class="text-center {% if not loop.first %}border-l pl-8 border-slate-200{% endif %}">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{{ item.name }}</p>
+                        <p class="text-2xl font-black {% if loop.first %}text-blue-600{% else %}text-slate-700{% endif %}">{{ item.p }}%</p>
                     </div>
                     {% endfor %}
-                {% else %}
-                    <p class="text-slate-400 text-sm">Đang tính toán xác suất...</p>
-                {% endif %}
+                </div>
+                <button onclick="exportToPDF(this)" class="no-print bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-2">
+                    <span>📄 Xuất báo cáo PDF</span>
+                </button>
             </div>
         </div>
 
-        <section class="mb-8">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
+        <!-- DASHBOARD STATISTICS (Ảnh 1) -->
+        <section class="mb-10">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
                 <div>
                     <p class="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Dashboard cá nhân hóa</p>
                     <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">Chân dung sự nghiệp của bạn</h3>
                 </div>
-                <p class="text-sm text-slate-400 max-w-2xl">
-                    Hệ thống kết hợp mô hình Holland, điểm học tập và dự đoán AI để xây dựng bức tranh cá nhân hóa, làm cơ sở trước khi đề xuất trường mục tiêu.
+                <p class="text-sm text-slate-400 max-w-2xl text-right hidden md:block">
+                    Hệ thống kết hợp mô hình Holland và dự đoán AI để xây dựng bức tranh hướng nghiệp tối ưu.
                 </p>
             </div>
 
-            <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-5">
+            <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+                <!-- Holland Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Holland profile</span>
-                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black">{{ dashboard_data.profile_name }}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Holland profile</span>
+                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase">{{ dashboard_data.profile_name }}</span>
                     </div>
                     <div class="space-y-3">
-                        {% for item in dashboard_data.dominant_holland %}
-                        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        {% for item in dashboard_data.dominant_holland|default([]) %}
+                        <div class="rounded-2xl bg-slate-50/50 p-4 border border-slate-50">
                             <div class="flex items-center justify-between mb-1">
-                                <p class="font-black text-slate-800">{{ item.code }} - {{ item.label }}</p>
-                                <span class="text-sm font-extrabold text-blue-600">{{ item.score }}/5</span>
+                                <p class="font-black text-slate-800 text-xs">{{ item.code }} - {{ item.label }}</p>
+                                <span class="text-[10px] font-black text-blue-600">{{ item.score }}/5</span>
                             </div>
-                            <p class="text-xs text-slate-500 leading-relaxed">{{ item.description }}</p>
+                            <p class="text-[10px] text-slate-500 leading-relaxed">{{ item.description }}</p>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
+                <!-- Strengths Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Thế mạnh học tập</span>
-                        <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Top mon</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Thế mạnh học tập</span>
+                        <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Top mon</span>
                     </div>
-                    <div class="space-y-4">
-                        {% for item in dashboard_data.subject_strengths %}
+                    <div class="space-y-5">
+                        {% for item in dashboard_data.subject_strengths|default([]) %}
                         <div>
-                            <div class="flex items-center justify-between text-sm font-bold text-slate-700 mb-2">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
                                 <span>{{ item.label }}</span>
                                 <span class="text-blue-600">{{ item.score }}</span>
                             </div>
-                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width: {{ item.width }}%"></div>
+                            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full" style="width: {{ item.width }}%"></div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
+                <!-- AI Stats Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Tổng quan gợi ý</span>
-                        <span class="text-xs font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-full">AI summary</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Tổng quan gợi ý</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                            <p class="text-[11px] uppercase font-black tracking-widest text-slate-400">Xác xuất cao nhất</p>
-                            <p class="text-2xl font-black text-slate-800 mt-2">{{ dashboard_data.stats.best_probability }}%</p>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                            <p class="text-[9px] uppercase font-black text-slate-400 mb-1">Xác suất đậu</p>
+                            <p class="text-xl font-black text-slate-800">{{ dashboard_data.stats.best_probability }}%</p>
                         </div>
-                        <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                            <p class="text-[11px] uppercase font-black tracking-widest text-slate-400">Tổng lựa chọn</p>
-                            <p class="text-2xl font-black text-slate-800 mt-2">{{ dashboard_data.stats.total_matches }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-emerald-50 p-4 border border-emerald-100">
-                            <p class="text-[11px] uppercase font-black tracking-widest text-emerald-600">An toàn</p>
-                            <p class="text-2xl font-black text-emerald-700 mt-2">{{ dashboard_data.stats.safe_matches }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-amber-50 p-4 border border-amber-100">
-                            <p class="text-[11px] uppercase font-black tracking-widest text-amber-600">Vừa sức</p>
-                            <p class="text-2xl font-black text-amber-700 mt-2">{{ dashboard_data.stats.balanced_matches }}</p>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                            <p class="text-[9px] uppercase font-black text-slate-400 mb-1">Tổng lựa chọn</p>
+                            <p class="text-xl font-black text-slate-800">{{ dashboard_data.stats.total_matches }}</p>
                         </div>
                     </div>
-                    <div class="rounded-2xl bg-slate-900 text-white p-4 mt-4">
-                        <p class="text-[11px] uppercase font-black tracking-widest text-slate-300">Điểm chuẩn tham chiếu</p>
-                        <p class="text-2xl font-black mt-2">{{ dashboard_data.stats.avg_cutoff }}</p>
-                        <p class="text-xs text-slate-300 mt-1">Trung bình 10 trường được xếp cao nhất.</p>
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg mt-2">
+                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Điểm chuẩn tham chiếu</p>
+                        <p class="text-3xl font-black">{{ dashboard_data.stats.avg_cutoff }}</p>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6" id="top-school-container">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Hồ sơ nổi bật</h3>
-                    </div>
+                <!-- Featured Card -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col">
+                    <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-4">Hồ sơ nổi bật</h3>
+                    
                     {% if dashboard_data.top_school %}
-                    <div id="top-school-card" class="rounded-2xl bg-gradient-to-br from-blue-600 to-slate-900 text-white p-5">
-                        <p class="text-sm font-black uppercase tracking-widest text-blue-100">Trường nên xem trước</p>
-                        <h4 class="school-name text-xl font-black mt-3 leading-tight">{{ dashboard_data.top_school.Truong }}</h4>
-                        <p class="school-major text-sm text-blue-100 mt-2 leading-relaxed">{{ dashboard_data.top_school.Nganh }}</p>
-                        <div class="flex items-center gap-3 mt-4 text-xs font-bold">
-                            <span class="school-block bg-white/15 px-3 py-1 rounded-full">Khối {{ dashboard_data.top_school.Block }}</span>
-                            <span class="school-prob bg-white/15 px-3 py-1 rounded-full">{{ dashboard_data.top_school.Prob }}%</span>
+                    <div class="rounded-2xl bg-slate-900 text-white p-5 flex flex-col shadow-xl">
+                        <p class="text-[9px] font-black uppercase text-slate-400 mb-2">Trường nên xem trước</p>
+                        <h4 class="text-base font-black leading-tight mb-2 text-white">{{ dashboard_data.top_school.Truong }}</h4>
+                        <p class="text-[11px] text-slate-300 mb-4 font-bold">{{ dashboard_data.top_school.Nganh }}</p>
+                        <div class="flex gap-2">
+                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">Khối {{ dashboard_data.top_school.Block }}</span>
+                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">{{ dashboard_data.top_school.Prob }}%</span>
                         </div>
                     </div>
                     {% endif %}
-                    <div class="mt-4 space-y-3">
-                        {% for track in dashboard_data.academic_tracks %}
-                        <div>
-                            <div class="flex items-center justify-between text-sm font-bold text-slate-700 mb-2">
-                                <span>{{ track.label }}</span>
-                                <span>{{ track.score }}</span>
-                            </div>
-                            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
-                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: {{ track.width }}%"></div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="mb-8">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
+        <!-- BẢN ĐỒ NGHỀ NGHIỆP (Ảnh 2) -->
+        <section class="mb-10">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
                 <div>
                     <p class="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Bản đồ nghề nghiệp</p>
                     <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">Từ hồ sơ cá nhân đến trường mục tiêu</h3>
                 </div>
-                <p class="text-sm text-slate-400 max-w-2xl">
-                    Sơ đồ này thể hiện chuỗi suy luận của hệ thống: từ đặc điểm cá nhân, thế mạnh học tập đến ngành phù hợp và các điểm đến xét tuyển.
-                </p>
             </div>
 
-            <div class="grid xl:grid-cols-4 gap-5">
+            <div class="grid xl:grid-cols-4 gap-6">
+                <!-- Step 01 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">01. RIASEC</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">01. RIASEC Profile</p>
                     <div class="space-y-3">
-                        {% for node in career_map.profile_nodes %}
-                        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-black text-slate-800">{{ node.code }} - {{ node.label }}</span>
-                                <span class="text-xs font-black text-blue-600">{{ node.score }}/5</span>
+                        {% for node in career_map.profile_nodes|default([]) %}
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-slate-900">{{ node.code }} - {{ node.label }}</span>
+                                <span class="text-[10px] font-black text-blue-700">{{ node.score }}/5</span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-2 leading-relaxed">{{ node.description }}</p>
+                            <p class="text-[10px] text-slate-600 font-medium">{{ node.description }}</p>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
+                <!-- Step 02 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">02. Học Tập</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">02. Thế mạnh học tập</p>
                     <div class="space-y-3">
-                        {% for node in career_map.subject_nodes %}
-                        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-black text-slate-800">{{ node.label }}</span>
-                                <span class="text-xs font-black text-emerald-600">{{ node.score }}</span>
+                        {% for node in career_map.subject_nodes|default([]) %}
+                        <div class="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-black text-slate-800">{{ node.label }}</span>
+                                <span class="text-[10px] font-bold text-emerald-600">{{ node.score }}</span>
                             </div>
-                            <div class="h-2 rounded-full bg-slate-100 overflow-hidden mt-3">
-                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400" style="width: {{ node.width }}%"></div>
+                            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div class="h-full bg-emerald-500" style="width: {{ node.width }}%"></div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
+                <!-- Step 03 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">03. Ngành phù hợp</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">03. Ngành phù hợp</p>
                     <div class="space-y-3">
-                        {% for node in career_map.major_nodes %}
-                        <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <p class="text-sm font-black text-slate-800">{{ node.name }}</p>
-                                    <p class="text-[11px] font-black uppercase tracking-wider text-blue-600 mt-1">{{ node.theme }}</p>
-                                </div>
-                                <span class="text-sm font-black text-blue-700">{{ node.confidence }}%</span>
+                        {% for node in career_map.major_nodes|default([]) %}
+                        <div class="rounded-2xl border border-blue-50 bg-blue-50/30 p-4">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <p class="text-xs font-black text-slate-800">{{ node.name }}</p>
+                                <span class="text-[10px] font-bold text-blue-700 whitespace-nowrap">{{ node.confidence }}%</span>
                             </div>
-                            <p class="text-xs text-slate-600 mt-3 leading-relaxed">{{ node.fit_reason }}</p>
+                            <p class="text-[10px] text-slate-500 leading-relaxed">{{ node.fit_reason }}</p>
                             <div class="flex flex-wrap gap-2 mt-3">
                                 {% for role in node.roles %}
-                                <span class="px-2.5 py-1 rounded-full bg-white border border-blue-100 text-[11px] font-bold text-slate-600">{{ role }}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-white text-[9px] font-bold text-slate-600 border border-slate-100">{{ role }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -305,21 +354,22 @@
                     </div>
                 </div>
 
+                <!-- Step 04 -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">04. Trường Mục Tiêu</p>
-                    <div class="space-y-3" id="target-schools-container">
-                        {% for node in career_map.target_schools %}
-                        <div class="target-school-node rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                            <div class="flex items-start justify-between gap-3">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">04. Trường Mục Tiêu</p>
+                    <div class="space-y-3">
+                        {% for node in career_map.target_schools|default([]) %}
+                        <div class="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
+                            <div class="flex items-start justify-between gap-2">
                                 <div>
-                                    <p class="school-name text-sm font-black text-slate-800 leading-tight">{{ node.school }}</p>
-                                    <p class="school-major text-xs text-slate-500 mt-1 leading-relaxed">{{ node.major }}</p>
+                                    <p class="text-xs font-black text-slate-800 leading-tight">{{ node.school }}</p>
+                                    <p class="text-[9px] text-slate-500 mt-1">{{ node.major }}</p>
                                 </div>
-                                <span class="school-prob text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-full px-2.5 py-1">{{ node.probability }}%</span>
+                                <span class="text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-lg border">{{ node.probability }}%</span>
                             </div>
-                            <div class="flex items-center gap-2 mt-3 text-[11px] font-bold text-slate-500">
-                                <span class="school-block px-2.5 py-1 rounded-full bg-white border border-slate-200">Khối {{ node.block }}</span>
-                                <span class="school-label px-2.5 py-1 rounded-full bg-white border border-slate-200">{{ node.label }}</span>
+                            <div class="flex gap-2 mt-3">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Khối {{ node.block }}</span>
+                                <span class="text-[9px] font-bold text-blue-600 uppercase">{{ node.label }}</span>
                             </div>
                         </div>
                         {% endfor %}
@@ -328,325 +378,188 @@
             </div>
         </section>
 
-        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
-            <div class="p-6 bg-white border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
-                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <span class="text-2xl">🎓</span> Danh sách trường Đại học gợi ý cho bạn
+        <!-- DANH SÁCH TRƯỜNG CHI TIẾT (Ảnh 3) -->
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+            <div class="p-8 border-b border-slate-50 flex flex-col lg:flex-row justify-between items-center gap-6">
+                <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <span class="text-2xl">🎓</span> Danh sách trường phù hợp nhất cho bạn
                 </h3>
-
-                <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                    <div class="flex items-center gap-2 border-r pr-3 border-slate-200">
-                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Mức độ:</span>
-                        <select id="filter-chance" onchange="filterSchools()" class="bg-white border-none text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg shadow-sm outline-none cursor-pointer">
-                            <option value="all">Tất cả khả năng</option>
-                            <option value="An toàn">🛡️ An toàn (Safe)</option>
-                            <option value="Vừa sức">⚡ Vừa sức (Match)</option>
-                            <option value="Tỉ lệ thấp">🚀 Thử thách (Stretch)</option>
-                        </select>
-                    </div>
-
+                
+                <div class="flex flex-wrap gap-4 items-center no-print">
+                    <!-- Lọc Vùng Miền -->
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Vùng miền:</span>
-                        <select id="filter-region" onchange="filterSchools()" class="bg-white border-none text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg shadow-sm outline-none cursor-pointer">
-                            <option value="all">Tất cả vùng miền</option>
-                            <option value="north">🏔️ Miền Bắc & Miền Núi Phía Bắc</option>
-                            <option value="central">🌊 Miền Trung & Tây Nguyên</option>
-                            <option value="south">🌆 Miền Nam</option>
-                            <option value="west">🌾 Miền Tây</option>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Vùng miền:</label>
+                        <select id="filter-region" onchange="filterSchools()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">Tất cả</option>
+                            <option value="Bac">Miền Bắc</option>
+                            <option value="Trung">Miền Trung</option>
+                            <option value="Nam">Miền Nam</option>
+                            <option value="Tay">Miền Tây</option>
                         </select>
                     </div>
-
-                    <div class="flex items-center gap-2 border-l pl-3 border-slate-200">
-                        <span class="text-[10px] font-black text-slate-400 uppercase ml-2">Gợi ý mở rộng:</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="expand-toggle" class="sr-only peer" {% if expand_majors %}checked{% endif %} onchange="toggleExpand()">
-                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
+                    <!-- Lọc Khả Năng Đậu -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Khả năng:</label>
+                        <select id="filter-danhgia" onchange="filterSchools()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">Tất cả</option>
+                            <option value="An toàn">An toàn</option>
+                            <option value="Vừa sức">Vừa sức</option>
+                            <option value="Tỉ lệ thấp">Tỉ lệ thấp</option>
+                        </select>
                     </div>
                 </div>
             </div>
-            
+
             <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50/50 text-slate-400 text-[11px] uppercase font-bold tracking-wider">
-                            <th class="p-4 px-8 text-left">Trường Đại học</th>
-                            <th class="p-4 text-left">Ngành đào tạo</th>
-                            <th class="p-4 text-center whitespace-nowrap">Khối</th>
-                            <th class="p-4 text-center whitespace-nowrap">Điểm của bạn</th>
-                            <th class="p-4 text-center whitespace-nowrap">Điểm chuẩn</th>
-                            <th class="p-4 text-center whitespace-nowrap">Đánh giá</th>
-                            <th class="p-4 text-center whitespace-nowrap">Xác suất đậu</th>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50/50 text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                        <tr>
+                            <th class="p-6 px-10">Trường Đại học</th>
+                            <th class="p-6">Ngành đào tạo</th>
+                            <th class="p-6 text-center">Khối</th>
+                            <th class="p-6 text-center text-blue-600">Điểm của bạn</th>
+                            <th class="p-6 text-center">Điểm chuẩn</th>
+                            <th class="p-6 text-center">Đánh giá</th>
+                            <th class="p-6 text-center">Xác suất đậu</th>
                         </tr>
                     </thead>
                     <tbody id="school-body" class="divide-y divide-slate-100">
-                        {% if results %}
-                            {% for r in results %}
-                            <tr class="school-row hover:bg-blue-50/30 transition-colors group"
-                                data-prob="{{ r.Prob }}"
-                                data-cutoff="{{ r.Cutoff }}"
-                                data-danhgia="{{ r.DanhGia }}"
-                                data-region="{{ r.Region }}"
-                                data-truong="{{ r.Truong }}"
-                                data-nganh="{{ r.Nganh }}"
-                                data-block="{{ r.Block }}">
-                                
-                                <td class="p-5 px-8">
-                                    <div class="font-bold text-slate-700 group-hover:text-blue-700 transition-colors">{{ r.Truong }}</div>
-                                </td>
-                                <td class="p-5">
-                                    <div class="text-sm text-slate-500 leading-relaxed max-w-xs">{{ r.Nganh }}</div>
-                                </td>
-                                <td class="p-5 text-center">
-                                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-mono text-xs font-bold whitespace-nowrap">
-                                        {{ r.Block }}
+                        {% for r in results|default([]) %}
+                        <tr class="school-row hover:bg-slate-50/80 transition-colors group" 
+                            style="display: none;"
+                            data-danhgia="{{ r.DanhGia }}" 
+                            data-region="{{ r.Region_Key|default('Khác') }}" 
+                            data-loai="{{ r.Loai|default('Công lập') }}">
+                            <td class="p-6 px-10 font-black text-slate-900 text-sm">{{ r.Truong }}</td>
+                            <td class="p-6 text-slate-700 text-xs font-bold leading-relaxed max-w-xs">{{ r.Nganh }}</td>
+                            <td class="p-6 text-center"><span class="bg-slate-100 px-3 py-1 rounded-lg font-mono text-[10px] font-black text-slate-700">{{ r.Block }}</span></td>
+                            <td class="p-6 text-center font-black text-blue-700 text-base">{{ r.Score|default('25.0') }}</td>
+                            <td class="p-6 text-center font-black text-slate-500 text-sm">{{ r.Cutoff }}</td>
+                            <td class="p-6 text-center">
+                                <div class="flex justify-center">
+                                    <span class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap {% if r.DanhGia == 'An toàn' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif r.DanhGia == 'Vừa sức' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %} shadow-sm">
+                                        {% if r.DanhGia == 'An toàn' %}✅{% elif r.DanhGia == 'Vừa sức' %}⚡{% else %}🚩{% endif %} {{ r.DanhGia }}
                                     </span>
-                                </td>
-                                <td class="p-5 text-center">
-                                    <span class="text-lg font-black text-blue-600 whitespace-nowrap">{{ r.Score }}</span>
-                                </td>
-                                <td class="p-5 text-center">
-                                    <span class="text-md font-semibold text-slate-400 whitespace-nowrap">{{ r.Cutoff }}</span>
-                                </td>
-                                <td class="p-5 text-center">
-                                    <div class="flex justify-center whitespace-nowrap">
-                                        {% if r.DanhGia == 'An toàn' or r.DanhGia == 'Safe' %}
-                                            <span class="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-emerald-200 shadow-sm shadow-emerald-100">
-                                                ✅ {{ r.DanhGia }}
-                                            </span>
-                                        {% elif r.DanhGia == 'Vừa sức' or r.DanhGia == 'Match' %}
-                                            <span class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-amber-200 shadow-sm shadow-amber-100">
-                                                ⚡ {{ r.DanhGia }}
-                                            </span>
-                                        {% else %}
-                                            <span class="bg-rose-100 text-rose-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-rose-200 shadow-sm shadow-rose-100">
-                                                🚩 {{ r.DanhGia }}
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="p-5 text-center">
-                                    <span class="text-md font-bold text-slate-700 italic">{{ r.Prob }}%</span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="7" class="p-20 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <span class="text-5xl mb-4">🔍</span>
-                                        <p class="text-slate-400 font-medium">Rất tiếc, không tìm thấy trường nào phù hợp.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endif %}
+                                </div>
+                            </td>
+                            <td class="p-6 text-center font-black text-slate-900 italic text-base">{{ r.Prob }}%</td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="mt-10 flex flex-col md:flex-row items-center justify-center gap-4">
-            <a href="/" class="bg-slate-800 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:-translate-y-1">
-                🔄 Làm lại bài test
-            </a>
-            <button onclick="window.print()" class="text-slate-500 hover:text-blue-600 font-bold px-8 py-4 rounded-2xl transition">
-                🖨️ Lưu kết quả (PDF)
-            </button>
+        <div class="mt-12 flex flex-col md:flex-row justify-center items-center gap-4 no-print pb-20">
+            <a href="/" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-xl">🔄 Làm lại bài test</a>
+            <button onclick="exportToPDF(this)" class="text-slate-400 hover:text-blue-600 font-bold px-10 py-4 rounded-2xl transition-colors">📄 Xuất báo cáo PDF</button>
         </div>
-
-        <p class="text-center text-slate-300 text-[10px] mt-12 uppercase tracking-[0.2em] font-bold pb-20">
-            Hệ thống tư vấn hướng nghiệp thông minh - 2026
-        </p>
     </div>
 
-    <div id="chat-container" class="overflow-hidden">
-        <div class="p-6 bg-white border-b border-slate-100 flex items-center justify-between">
+    <!-- FLOATING CHATBOT OVERLAY (Ảnh mẫu) -->
+    <div id="chat-toggle-btn" onclick="toggleChat()">
+        <img src="https://cdn-icons-png.flaticon.com/512/8649/8649595.png" class="w-9 h-9" alt="chat">
+    </div>
+
+    <div id="chat-container">
+        <div class="p-6 bg-white border-b flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center shadow-inner border border-white">
+                <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
                     <img src="https://cdn-icons-png.flaticon.com/512/8649/8649595.png" class="w-8 h-8" alt="bot">
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-slate-800 text-sm tracking-tight">AI Admission Expert</h3>
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">Tư vấn chính thức</p>
-                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">AI Admission Expert</h3>
+                    <p class="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Tư vấn trực tuyến
+                    </p>
                 </div>
             </div>
-            <button onclick="document.getElementById('chat-container').style.display='none'" class="text-slate-400 hover:text-slate-600 transition-colors p-2 bg-slate-50 rounded-full text-xl leading-none">&times;</button>
+            <button onclick="toggleChat()" class="text-slate-400 hover:text-slate-800 text-2xl transition-colors">&times;</button>
         </div>
-
-        <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-6">
-            <div class="ai-bubble p-4 px-5 max-w-[90%] chat-content shadow-sm text-[13px] leading-relaxed">
-                Chào bạn! Tôi là chuyên gia AI. Tôi đã sẵn sàng giải đáp mọi thắc mắc của bạn về **chỉ tiêu, học phí và quy chế tuyển sinh** từ các file PDF. Hãy đặt câu hỏi cho tôi nhé!
+        <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6">
+            <div class="ai-bubble p-5 text-sm leading-relaxed shadow-sm font-medium">
+                Chào bạn! Tôi là chuyên gia AI. Tôi đã sẵn sàng giải đáp mọi thắc mắc của bạn về **chỉ tiêu, học phí và quy chế tuyển sinh**. Hãy đặt câu hỏi nhé!
             </div>
         </div>
-
-        <div class="p-6 bg-white border-t border-slate-50">
-            <div class="relative flex items-center bg-slate-50 rounded-2xl p-1.5 border border-slate-200 group focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
-                <input type="text" id="user-msg" 
-                    class="flex-1 bg-transparent px-4 py-3 text-slate-700 text-sm font-medium placeholder-slate-400 outline-none" 
-                    placeholder="Nhập câu hỏi tại đây...">
-                <button onclick="sendToAI()" 
-                    class="bg-[#F5B544] hover:bg-[#e5a534] text-slate-900 font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-md flex items-center gap-2 uppercase text-[12px] tracking-wider">
-                    Gửi
-                </button>
+        <div class="p-6 bg-white border-t">
+            <div class="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-200">
+                <input type="text" id="user-msg" class="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none" placeholder="Hỏi tôi bất cứ điều gì...">
+                <button onclick="sendToAI()" class="bg-[#F5B544] hover:bg-[#e5a534] text-slate-900 font-black py-3 px-8 rounded-xl transition-all shadow-md text-xs uppercase tracking-wider">Gửi</button>
             </div>
         </div>
     </div>
 
     <script>
-        function filterSchools() {
-            const chanceFilter = document.getElementById('filter-chance').value;
-            const regionFilter = document.getElementById('filter-region').value;
-            const tbody = document.getElementById('school-body');
-            const rows = Array.from(document.querySelectorAll('.school-row'));
-            
-            let visibleCount = 0;
-            const maxDisplay = 50; // Hiển thị tối đa 50 trường sau khi lọc
-
-            const regionGroups = {
-                'north': ["Đồng bằng sông Hồng", "Trung du và miền núi phía Bắc"],
-                'central': ["Bắc Trung Bộ", "Duyên hải Nam Trung Bộ và Tây Nguyên"],
-                'south': ["Đông Nam Bộ"],
-                'west': ["Đồng bằng sông Cửu Long"]
-            };
-
-            rows.forEach(row => {
-                const rowChance = row.dataset.danhgia;
-                const rowRegion = row.dataset.region;
-                
-                const matchChance = (chanceFilter === 'all' || rowChance === chanceFilter);
-                
-                let matchRegion = false;
-                if (regionFilter === 'all') {
-                    matchRegion = true;
-                } else {
-                    const targetRegions = regionGroups[regionFilter] || [];
-                    matchRegion = targetRegions.includes(rowRegion);
-                }
-                
-                if (matchChance && matchRegion && visibleCount < maxDisplay) {
-                    row.style.display = "";
-                    visibleCount++;
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            // --- CẬP NHẬT ĐỘNG PHẦN TARGET SCHOOLS VÀ TOP CARD ---
-            const visibleRows = rows.filter(r => r.style.display !== 'none');
-            if (visibleRows.length > 0) {
-                // 1. Cập nhật Top Card
-                const topSchool = visibleRows[0].dataset;
-                const topCard = document.getElementById('top-school-card');
-                if (topCard) {
-                    topCard.querySelector('.school-name').textContent = topSchool.truong;
-                    topCard.querySelector('.school-major').textContent = topSchool.nganh;
-                    topCard.querySelector('.school-block').textContent = "Khối " + topSchool.block;
-                    topCard.querySelector('.school-prob').textContent = topSchool.prob + "%";
-                }
-
-                // 2. Cập nhật Target Schools (Trường mục tiêu)
-                const targetContainer = document.getElementById('target-schools-container');
-                if (targetContainer) {
-                    const targetNodes = targetContainer.querySelectorAll('.target-school-node');
-                    // Chúng ta lấy tối đa 3 trường tiếp theo sau trường top
-                    for (let i = 0; i < targetNodes.length; i++) {
-                        const schoolIdx = i + 1; // Bắt đầu từ trường thứ 2 trong danh sách hiển thị
-                        if (visibleRows[schoolIdx]) {
-                            const s = visibleRows[schoolIdx].dataset;
-                            targetNodes[i].style.opacity = "1";
-                            targetNodes[i].querySelector('.school-name').textContent = s.truong;
-                            targetNodes[i].querySelector('.school-major').textContent = s.nganh;
-                            targetNodes[i].querySelector('.school-prob').textContent = s.prob + "%";
-                            targetNodes[i].querySelector('.school-block').textContent = "Khối " + s.block;
-                            targetNodes[i].querySelector('.school-label').textContent = s.danhgia;
-                        } else {
-                            targetNodes[i].style.opacity = "0.3"; // Làm mờ nếu không đủ trường
-                        }
-                    }
-                }
-            }
-            
-            // Nếu không có kết quả nào thỏa mãn
-            const noResultRow = document.getElementById('no-result-row');
-            if (visibleCount === 0) {
-                if (!noResultRow) {
-                    const tr = document.createElement('tr');
-                    tr.id = 'no-result-row';
-                    const msg = document.getElementById('expand-toggle').checked 
-                        ? "Không tìm thấy trường nào phù hợp với điểm số và vùng miền này."
-                        : "Không tìm thấy trường đào tạo ngành này phù hợp. Hãy thử bật 'Gợi ý mở rộng'!";
-                    tr.innerHTML = `<td colspan="7" class="p-10 text-center text-slate-400">${msg}</td>`;
-                    tbody.appendChild(tr);
-                }
-            } else if (noResultRow) {
-                noResultRow.remove();
-            }
-        }
-
-        function toggleExpand() {
-            const isChecked = document.getElementById('expand-toggle').checked;
-            const url = new URL(window.location.href);
-            url.searchParams.set('expand', isChecked ? '1' : '0');
-            // Thêm hiệu ứng loading đơn giản
-            document.body.style.opacity = "0.6";
-            window.location.href = url.href;
+        function toggleChat() {
+            const chat = document.getElementById('chat-container');
+            const isVisible = chat.style.display === 'flex';
+            chat.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) document.getElementById('user-msg').focus();
         }
 
         async function sendToAI() {
-            const msgInput = document.getElementById('user-msg');
+            const input = document.getElementById('user-msg');
             const chatBox = document.getElementById('chat-box');
-            const userMsg = msgInput.value.trim();
-            if (!userMsg) return;
+            const text = input.value.trim();
+            if (!text) return;
 
-            // User message UI
-            chatBox.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="user-bubble p-4 px-5 max-w-[90%] font-medium shadow-sm text-[13px] leading-relaxed">
-                        ${userMsg}
-                    </div>
-                </div>`;
-            
-            msgInput.value = '';
+            input.value = '';
+            chatBox.innerHTML += `<div class="flex justify-end"><div class="user-bubble p-5 text-sm shadow-sm font-medium">${text}</div></div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Hiệu ứng đang gõ với dấu chấm nhảy nhót
-            const loadingId = "loading-" + Date.now();
-            chatBox.innerHTML += `
-                <div id="${loadingId}" class="flex items-start gap-2">
-                    <div class="ai-bubble p-4 px-5 flex items-center gap-1 shadow-sm">
-                        <span class="typing-dot"></span>
-                        <span class="typing-dot"></span>
-                        <span class="typing-dot"></span>
-                    </div>
-                </div>`;
+            const loading = document.createElement('div');
+            loading.className = 'ai-bubble p-5 text-sm italic text-slate-400';
+            loading.textContent = 'Đang phân tích...';
+            chatBox.appendChild(loading);
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                const response = await fetch('/api/chat', {
+                const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ message: userMsg })
+                    body: JSON.stringify({ message: text })
                 });
-                const data = await response.json();
-                document.getElementById(loadingId).remove();
-                
-                const formattedReply = marked.parse(data.reply);
-                chatBox.innerHTML += `
-                    <div class="ai-bubble p-4 px-5 max-w-[90%] chat-content shadow-sm text-[13px] leading-relaxed">
-                        ${formattedReply}
-                    </div>`;
-            } catch (error) {
-                if(document.getElementById(loadingId)) {
-                    document.getElementById(loadingId).innerHTML = `<div class="text-rose-500 text-[10px] font-bold uppercase ml-4">❌ Lỗi kết nối. Vui lòng thử lại.</div>`;
-                }
+                const data = await res.json();
+                loading.remove();
+                chatBox.innerHTML += `<div class="ai-bubble p-5 text-sm leading-relaxed shadow-sm font-medium">${marked.parse(data.reply)}</div>`;
+            } catch (e) {
+                loading.textContent = 'Lỗi kết nối. Hãy thử lại.';
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        document.getElementById('user-msg').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendToAI(); });
+        function filterSchools() {
+            const regionFilter = document.getElementById('filter-region').value;
+            const danhgiaFilter = document.getElementById('filter-danhgia').value;
+            
+            let visibleCount = 0;
+            const MAX_DISPLAY = 30;
+            
+            const rows = document.querySelectorAll('.school-row');
+            rows.forEach(row => {
+                const region = row.getAttribute('data-region') || '';
+                const danhgia = row.getAttribute('data-danhgia') || '';
+                
+                const regionMatch = (regionFilter === 'all' || region === regionFilter);
+                const danhgiaMatch = (danhgiaFilter === 'all' || danhgia === danhgiaFilter);
+                
+                if (regionMatch && danhgiaMatch && visibleCount < MAX_DISPLAY) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', filterSchools);
+
+        async function exportToPDF(btn) {
+            // Chuyển sang sử dụng trình in của trình duyệt để có chất lượng cao nhất
+            window.print();
+        }
+
+        document.getElementById('user-msg').addEventListener('keypress', e => { if (e.key === 'Enter') sendToAI(); });
         document.addEventListener('DOMContentLoaded', filterSchools);
     </script>
 </body>
