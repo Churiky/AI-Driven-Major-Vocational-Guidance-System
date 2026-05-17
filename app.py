@@ -6,7 +6,7 @@ import os
 import threading
 import numpy as np
 
-from src.transformer_model import CareerTransformer, FeatureTokenizerTransformer
+from src.transformer_model import CareerTransformer, FeatureTokenizerTransformer, MultimodalCareerTransformer
 from src.university_recommender import UniversityRecommender
 from src.admission_predictor import AdmissionPredictor
 from src.ai_expert import CareerAIExpert 
@@ -265,9 +265,9 @@ def build_dashboard_payload(holland_scores, scores, top_predictions, recommendat
 # 1. LOAD AI MODEL & CONFIG
 # ==========================================
 base_dir = os.path.dirname(os.path.abspath(__file__))
-classes_path = os.path.join(base_dir, "models", "transformer_synthetic_classes.pkl")
-scaler_path = os.path.join(base_dir, "models", "transformer_synthetic_scaler.pkl")
-model_path = os.path.join(base_dir, "models", "transformer_synthetic_best.pth")
+classes_path = os.path.join(base_dir, "models", "multimodal_transformer_classes.pkl")
+scaler_path = os.path.join(base_dir, "models", "multimodal_transformer_scaler.pkl")
+model_path = os.path.join(base_dir, "models", "multimodal_transformer.pth")
 
 with open(classes_path, "rb") as f: labels = pickle.load(f)
 with open(scaler_path, "rb") as f: scaler = pickle.load(f)
@@ -280,14 +280,15 @@ def load_prediction_model(path, num_classes):
 
     if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
         model_config = checkpoint.get("config", {})
-        model = FeatureTokenizerTransformer(
-            num_features=model_config.get("num_features", 17),
+        model = MultimodalCareerTransformer(
+            num_acad_features=11,
+            num_psych_features=6,
             num_classes=num_classes,
             d_model=64,
             nhead=4,
             num_layers=3,
             ff_multiplier=3,
-            dropout=0.15,
+            dropout=0.15
         )
         model.load_state_dict(checkpoint["model_state_dict"])
         return model
@@ -371,7 +372,8 @@ def score():
             "sinh": float(request.form.get("sinh", 0)),
             "su": float(request.form.get("su", 0)),
             "dia": float(request.form.get("dia", 0)),
-            "gdcd": float(request.form.get("gdcd", 0))
+            "gdcd": float(request.form.get("gdcd", 0)),
+            "method_id": int(request.form.get("method_id", 1))
         }
         s["khtn"] = round((s["ly"] + s["hoa"] + s["sinh"]) / 3, 2)
         s["khxh"] = round((s["su"] + s["dia"] + s["gdcd"]) / 3, 2)
@@ -436,13 +438,16 @@ def result():
     
     expand_majors = request.args.get('expand', '0') == '1'
     
+    preferred_method = s.get('method_id', 1)
+    
     raw_results = recommender.recommend(
         best_major_raw, s, 
         preferred_region=preferred_region,
         preferred_city=preferred_city,
         preferred_type=preferred_type,
         priority_order=priority_order,
-        expand_majors=expand_majors
+        expand_majors=expand_majors,
+        preferred_method=preferred_method
     )
     dashboard_data, career_map = build_dashboard_payload(h, s, top_predictions, raw_results)
 

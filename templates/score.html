@@ -50,6 +50,20 @@
 
         <form method="post" action="/score" class="space-y-5">
             <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Phương thức xét tuyển</p>
+                <div class="flex gap-4 mb-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="method_id" value="1" class="peer sr-only" checked required>
+                        <div class="py-3 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 font-black text-slate-400 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 transition-all">Điểm thi THPT</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="method_id" value="2" class="peer sr-only">
+                        <div class="py-3 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 font-black text-slate-400 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 transition-all">Điểm Học bạ</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Môn bắt buộc</p>
                 <div class="grid grid-cols-3 gap-4">
                     {% for mon in [('toan','Toán'), ('van','Văn'), ('anh','Anh')] %}

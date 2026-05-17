@@ -1,0 +1,18 @@
+                  precision    recall  f1-score   support
+
+CongNgheThongTin       1.00      0.99      1.00       129
+          KeToan       0.52      0.34      0.41       124
+        KienTruc       0.99      1.00      1.00       127
+          KinhTe       0.51      0.69      0.58       124
+      KỹThuatOTo       1.00      1.00      1.00       125
+            Luat       0.48      0.25      0.33       128
+       Marketing       1.00      1.00      1.00       123
+      NgonNguAnh       1.00      0.97      0.98       124
+ QuanTriKhachSan       0.99      1.00      1.00       125
+          SuPham       0.49      0.72      0.59       127
+        TamLyHoc       0.97      1.00      0.98       120
+           YKhoa       1.00      1.00      1.00       124
+
+        accuracy                           0.83      1500
+       macro avg       0.83      0.83      0.82      1500
+    weighted avg       0.83      0.83      0.82      1500

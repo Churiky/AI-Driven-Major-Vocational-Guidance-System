@@ -16,8 +16,49 @@ class UniversityRecommender:
             raise FileNotFoundError(f"Không tìm thấy file dữ liệu tại: {path}")
 
         # 1. Đọc và chuẩn hóa dữ liệu
-        self.df = pd.read_csv(path, encoding='utf-8-sig')
-        self.df.columns = self.df.columns.str.strip()
+        df_raw = pd.read_csv(path, encoding='utf-8-sig')
+        df_raw.columns = df_raw.columns.str.strip()
+
+        col_truong = self._find_col(df_raw, ['truong', 'Tên trường', 'ten_truong'])
+        col_nganh_ma = self._find_col(df_raw, ['ma_nganh', 'Mã ngành'])
+        col_cutoff = self._find_col(df_raw, ['diem_chuan', 'Diem chuan'])
+        col_nam = self._find_col(df_raw, ['nam', 'Năm'])
+        col_method = self._find_col(df_raw, ['method_id', 'Phương thức'])
+        
+        # Đảm bảo method_id là int
+        if col_method:
+            df_raw[col_method] = df_raw[col_method].fillna(1).astype(int)
+        else:
+            df_raw['method_id'] = 1
+            col_method = 'method_id'
+
+        def aggregate_history(group):
+            history = {}
+            for _, row in group.iterrows():
+                try:
+                    y = int(row[col_nam]) if col_nam else 2025
+                    history[y] = float(row[col_cutoff])
+                except (ValueError, TypeError):
+                    pass
+            if not history:
+                return None
+                
+            avg_cutoff = round(sum(history.values()) / len(history), 2)
+            group_sorted = group.sort_values(by=col_nam if col_nam else col_cutoff, ascending=False)
+            first_row = group_sorted.iloc[0]
+            
+            res = {c: first_row[c] for c in group.columns}
+            res[col_cutoff] = avg_cutoff
+            res['history'] = history
+            return pd.Series(res)
+
+        if col_truong and col_nganh_ma and col_method:
+            # Tắt warning include_groups=False của Pandas mới
+            self.df = df_raw.groupby([col_truong, col_nganh_ma, col_method]).apply(aggregate_history, include_groups=False).reset_index()
+            # Gộp lại index cột từ result của apply
+        else:
+            self.df = df_raw
+            self.df['history'] = self.df[col_cutoff].apply(lambda x: {2025: x})
 
         # 2. Khởi tạo module hỗ trợ
         self.mapper = SubjectMapper()
@@ -136,10 +177,25 @@ class UniversityRecommender:
         else:
             self.df['Location_Score'] = 0.5
 
-    def _find_col(self, candidates):
+    def _find_col(self, df_or_list, candidates):
         """Tìm tên cột thực tế trong DataFrame theo danh sách ứng viên."""
-        for c in candidates:
-            if c in self.df.columns:
+        if isinstance(df_or_list, list):
+            cols = self.df.columns
+        else:
+            cols = df_or_list.columns
+            candidates = candidates if isinstance(candidates, list) else df_or_list # Wait, the signature changed.
+            # Fixed below
+            
+    def _find_col(self, df_or_candidates, candidates=None):
+        if candidates is None:
+            cols = self.df.columns
+            candidates_list = df_or_candidates
+        else:
+            cols = df_or_candidates.columns
+            candidates_list = candidates
+            
+        for c in candidates_list:
+            if c in cols:
                 return c
         return None
 
@@ -241,7 +297,7 @@ class UniversityRecommender:
     # Recommend
     # -----------------------------------------------------------------------
 
-    def recommend(self, nganh_key, user_scores, weights=None, preferred_region=None, preferred_city=None, preferred_type=None, priority_order=None, expand_majors=False):
+    def recommend(self, nganh_key, user_scores, weights=None, preferred_region=None, preferred_city=None, preferred_type=None, priority_order=None, expand_majors=False, preferred_method=1):
         """
         Pipeline chính sử dụng thuật toán TOPSIS để xếp hạng.
         """
@@ -263,10 +319,20 @@ class UniversityRecommender:
 
         if not col_cutoff or not col_tohop:
             raise ValueError("CSV thiếu cột điểm chuẩn hoặc tổ hợp môn.")
+            
+        col_method = self._find_col(['method_id', 'Phương thức'])
 
         recommendations = []
 
         for _, row in self.df.iterrows():
+            # Filter method_id
+            if col_method and preferred_method is not None:
+                try:
+                    if int(row[col_method]) != int(preferred_method):
+                        continue
+                except:
+                    pass
+                    
             # --- BƯỚC 1: LỌC ĐIỂM CHUẨN & NGÀNH ---
             try:
                 cutoff = float(row[col_cutoff])
@@ -302,7 +368,12 @@ class UniversityRecommender:
 
             # --- BƯỚC 3: CHUẨN BỊ TIÊU CHÍ CHO TOPSIS ---
             diff = current_score - cutoff
-            current_danhgia = "An toàn" if diff >= 1.5 else ("Vừa sức" if diff >= -1.5 else "Tỉ lệ thấp")
+            if current_prob >= 90:
+                current_danhgia = "An toàn"
+            elif current_prob >= 50:
+                current_danhgia = "Vừa sức"
+            else:
+                current_danhgia = "Nguy hiểm"
             
             level_match = 1.0 if current_danhgia in ["An toàn", "Vừa sức"] else 0.2
             close_match = 1.0 if abs(diff) <= 1.5 else 0.1
@@ -359,6 +430,7 @@ class UniversityRecommender:
                 "Truong": ten_truong, "Nganh": ten_nganh_raw, "Block": valid_block,
                 "Score": round(current_score, 2), "Cutoff": cutoff, "Prob": current_prob,
                 "DanhGia": current_danhgia, "Loai": loai, "ThanhPho": thanh_pho, "Region": region_val, "Region_Key": region_key,
+                "History": row.get('history', {2025: cutoff}),
                 # Fields cho TOPSIS
                 "Level_Match": level_match, "Region_Match": region_match, "Type_Match": type_match,
                 "City_Match": city_match, "Quality_Score": quality_score, "Major_Score": major_score,
