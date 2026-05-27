@@ -14,3 +14,4 @@ scikit-learn
 seaborn
 torch
 Unidecode
+pywebview>=5.0

@@ -1,87 +1,141 @@
 {
+  "CongNgheSinhHoc": {
+    "precision": 1.0,
+    "recall": 0.9583333333333334,
+    "f1-score": 0.9787234042553191,
+    "support": 72.0
+  },
   "CongNgheThongTin": {
     "precision": 1.0,
-    "recall": 0.9922480620155039,
-    "f1-score": 0.9961089494163424,
-    "support": 129.0
+    "recall": 0.8309859154929577,
+    "f1-score": 0.9076923076923077,
+    "support": 71.0
+  },
+  "CongNgheVatLieu": {
+    "precision": 0.9726027397260274,
+    "recall": 0.9726027397260274,
+    "f1-score": 0.9726027397260274,
+    "support": 73.0
+  },
+  "CongNghiepBaoVeMoiTruong": {
+    "precision": 0.9714285714285714,
+    "recall": 0.9714285714285714,
+    "f1-score": 0.9714285714285714,
+    "support": 70.0
+  },
+  "DienTuVienThong": {
+    "precision": 0.8536585365853658,
+    "recall": 0.9859154929577465,
+    "f1-score": 0.9150326797385621,
+    "support": 71.0
+  },
+  "DuLich": {
+    "precision": 0.8028169014084507,
+    "recall": 0.8260869565217391,
+    "f1-score": 0.8142857142857143,
+    "support": 69.0
+  },
+  "DuocLieu": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0,
+    "support": 67.0
   },
   "KeToan": {
-    "precision": 0.5185185185185185,
-    "recall": 0.3387096774193548,
-    "f1-score": 0.4097560975609756,
-    "support": 124.0
+    "precision": 0.6867469879518072,
+    "recall": 0.7702702702702703,
+    "f1-score": 0.7261146496815286,
+    "support": 74.0
   },
   "KienTruc": {
-    "precision": 0.9921875,
+    "precision": 1.0,
     "recall": 1.0,
-    "f1-score": 0.996078431372549,
-    "support": 127.0
+    "f1-score": 1.0,
+    "support": 70.0
   },
   "KinhTe": {
-    "precision": 0.5089820359281437,
-    "recall": 0.6854838709677419,
-    "f1-score": 0.584192439862543,
-    "support": 124.0
+    "precision": 0.6585365853658537,
+    "recall": 0.7714285714285715,
+    "f1-score": 0.7105263157894737,
+    "support": 70.0
+  },
+  "KinhTeQuocTe": {
+    "precision": 0.9736842105263158,
+    "recall": 0.9866666666666667,
+    "f1-score": 0.9801324503311258,
+    "support": 75.0
   },
   "KỹThuatOTo": {
-    "precision": 1.0,
+    "precision": 0.9857142857142858,
     "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 125.0
+    "f1-score": 0.9928057553956835,
+    "support": 69.0
   },
   "Luat": {
-    "precision": 0.47761194029850745,
-    "recall": 0.25,
-    "f1-score": 0.3282051282051282,
-    "support": 128.0
+    "precision": 0.9298245614035088,
+    "recall": 0.7794117647058824,
+    "f1-score": 0.848,
+    "support": 68.0
   },
   "Marketing": {
-    "precision": 1.0,
+    "precision": 0.958904109589041,
+    "recall": 0.9722222222222222,
+    "f1-score": 0.9655172413793104,
+    "support": 72.0
+  },
+  "NgoaiGiao": {
+    "precision": 0.9743589743589743,
     "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 123.0
+    "f1-score": 0.987012987012987,
+    "support": 76.0
   },
   "NgonNguAnh": {
-    "precision": 1.0,
-    "recall": 0.967741935483871,
-    "f1-score": 0.9836065573770492,
-    "support": 124.0
+    "precision": 0.958904109589041,
+    "recall": 0.9859154929577465,
+    "f1-score": 0.9722222222222222,
+    "support": 71.0
   },
   "QuanTriKhachSan": {
-    "precision": 0.9920634920634921,
-    "recall": 1.0,
-    "f1-score": 0.9960159362549801,
-    "support": 125.0
+    "precision": 0.8405797101449275,
+    "recall": 0.7945205479452054,
+    "f1-score": 0.8169014084507042,
+    "support": 73.0
+  },
+  "QuanTriTaiChinh": {
+    "precision": 0.7291666666666666,
+    "recall": 0.5,
+    "f1-score": 0.5932203389830508,
+    "support": 70.0
   },
   "SuPham": {
-    "precision": 0.4919786096256685,
-    "recall": 0.7244094488188977,
-    "f1-score": 0.5859872611464968,
-    "support": 127.0
+    "precision": 0.8313253012048193,
+    "recall": 0.9324324324324325,
+    "f1-score": 0.8789808917197452,
+    "support": 74.0
   },
   "TamLyHoc": {
-    "precision": 0.967741935483871,
-    "recall": 1.0,
-    "f1-score": 0.9836065573770492,
-    "support": 120.0
+    "precision": 1.0,
+    "recall": 0.9866666666666667,
+    "f1-score": 0.9932885906040269,
+    "support": 75.0
   },
   "YKhoa": {
-    "precision": 1.0,
+    "precision": 0.958904109589041,
     "recall": 1.0,
-    "f1-score": 1.0,
-    "support": 124.0
+    "f1-score": 0.9790209790209791,
+    "support": 70.0
   },
-  "accuracy": 0.8286666666666667,
+  "accuracy": 0.9066666666666666,
   "macro avg": {
-    "precision": 0.8290903359931834,
-    "recall": 0.8298827495587808,
-    "f1-score": 0.821963113214426,
+    "precision": 0.9089122076787,
+    "recall": 0.9059470307026687,
+    "f1-score": 0.904929011796064,
     "support": 1500.0
   },
   "weighted avg": {
-    "precision": 0.828113641198704,
-    "recall": 0.8286666666666667,
-    "f1-score": 0.8207881763381816,
+    "precision": 0.9089396981654243,
+    "recall": 0.9066666666666666,
+    "f1-score": 0.9053360414055625,
     "support": 1500.0
   }
 }

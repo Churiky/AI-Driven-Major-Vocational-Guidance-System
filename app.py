@@ -5,6 +5,8 @@ import pickle
 import os
 import threading
 import numpy as np
+import csv
+from pathlib import Path
 
 from src.transformer_model import CareerTransformer, FeatureTokenizerTransformer, MultimodalCareerTransformer
 from src.university_recommender import UniversityRecommender
@@ -15,9 +17,72 @@ app = Flask(__name__)
 app.secret_key = "career_ai_secret_key"
 
 # ==========================================
-# 🔑 CẤU HÌNH API KEY (ĐÃ SỬA LOGIC KHỞI TẠO)
+# 🔑 CẤU HÌNH API KEY (ĐÃ SỬA LOGIC KHỞI TẠO ĐỘNG)
 # ==========================================
-GEMINI_API_KEY = "AIzaSyCqo5MWq-zM3BBlqTYbUdP5oFnEzrHWfN8"
+def load_gemini_api_key():
+    # 1. Kiểm tra biến môi trường hệ thống
+    key = os.environ.get("GEMINI_API_KEY")
+    if key:
+        return key
+    
+    # 2. Kiểm tra file cấu hình .env tại thư mục gốc
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    env_path = os.path.join(base_dir, ".env")
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if "=" in line:
+                        k, v = line.split("=", 1)
+                        if k.strip() == "GEMINI_API_KEY":
+                            val = v.strip()
+                            # Loại bỏ dấu ngoặc kép hoặc ngoặc đơn nếu có
+                            if val.startswith(('"', "'")) and val.endswith(('"', "'")):
+                                val = val[1:-1]
+                            return val
+        except Exception as e:
+            print(f"Lỗi khi đọc file .env: {e}")
+            
+    # 3. Fallback mặc định (key bị khóa, hệ thống sẽ báo lỗi chi tiết để người dùng cập nhật)
+    return "AIzaSyCqo5MWq-zM3BBlqTYbUdP5oFnEzrHWfN8"
+
+GEMINI_API_KEY = load_gemini_api_key()
+
+
+def load_topcv_hot_majors(csv_path: str = "data/topcv_hot_majors.csv") -> dict:
+    """
+    Trả về dict: {major_raw: {"hot_rank": int, "hot_score": int, ...}}
+    """
+    base_dir = Path(__file__).parent
+    full_path = base_dir / csv_path
+    hot_majors = {}
+
+    if not full_path.is_file():
+        print(f"[WARN] TopCV hot majors file not found: {full_path}")
+        return hot_majors
+
+    with open(full_path, newline='', encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            major = row["major_raw"].strip()
+            try:
+                hot_majors[major] = {
+                    "hot_rank": int(row["hot_rank"]),
+                    "hot_score": int(float(row["hot_score"])),  # Chấp nhận float dạng "90.0"
+                    "category": row["category"].strip(),
+                    "description": row["description"].strip()
+                }
+            except (ValueError, KeyError) as e:
+                print(f"[WARN] Skipping invalid row for {major}: {e}")
+
+    return hot_majors
+
+
+TOPCV_HOT_MAJORS = load_topcv_hot_majors()
+
 
 MAJOR_MAPPING = {
     "CongNgheThongTin": "Công Nghệ Thông Tin",
@@ -31,7 +96,16 @@ MAJOR_MAPPING = {
     "TamLyHoc": "Tâm Lý Học",
     "SuPham": "Sư Phạm",
     "QuanTriKhachSan": "Quản Trị Khách Sạn",
-    "KeToan": "Kế Toán"
+    "KeToan": "Kế Toán",
+    "CongNgheSinhHoc": "Công Nghệ Sinh Học",
+    "CongNgheVatLieu": "Công Nghệ Vật Liệu",
+    "DienTuVienThong": "Điện tử Viễn Thông",
+    "CongNghiepBaoVeMoiTruong": "Công Nghiệp Bảo Vệ Môi Trường",
+    "DuLich": "Du Lịch",
+    "QuanTriTaiChinh": "Quản Trị Tài Chính",
+    "KinhTeQuocTe": "Kinh Tế Quốc Tế",
+    "NgoaiGiao": "Ngoại Giao",
+    "DuocLieu": "Dược Liệu",
 }
 
 HOLLAND_INFO = {
@@ -195,6 +269,8 @@ def build_major_cards(top_predictions):
     cards = []
     for prediction in top_predictions:
         insight = MAJOR_INSIGHTS.get(prediction["raw"], {})
+        major_raw = prediction["raw"]
+        is_hot = major_raw in TOPCV_HOT_MAJORS
         cards.append(
             {
                 "name": prediction["name"],
@@ -202,9 +278,13 @@ def build_major_cards(top_predictions):
                 "theme": insight.get("theme", "Định Hướng Nghề Nghiệp"),
                 "fit_reason": insight.get("fit_reason", "Phù Hợp Với Hồ Sơ Hiện Tại Của Học Sinh."),
                 "roles": insight.get("roles", ["Vị Trí Liên Quan"]),
+                "is_hot": is_hot,
             }
         )
-    return cards
+    # Sort to put hot majors first (while preserving original order within hot/non-hot groups)
+    hot_cards = [card for card in cards if card["is_hot"]]
+    non_hot_cards = [card for card in cards if not card["is_hot"]]
+    return hot_cards + non_hot_cards
 
 
 def build_dashboard_payload(holland_scores, scores, top_predictions, recommendations):
@@ -321,8 +401,8 @@ def get_rag_expert():
     if expert_rag is not None:
         return expert_rag
 
-    if not GEMINI_API_KEY or len(GEMINI_API_KEY) <= 10:
-        expert_rag_init_error = "Chưa cấu hình Gemini API Key hợp lệ."
+    if not GEMINI_API_KEY or len(GEMINI_API_KEY) <= 10 or GEMINI_API_KEY == "AIzaSyCqo5MWq-zM3BBlqTYbUdP5oFnEzrHWfN8":
+        expert_rag_init_error = "Gemini API Key mặc định bị khóa do lộ thông tin. Vui lòng tạo file .env trong thư mục dự án và thêm dòng: GEMINI_API_KEY=key_cua_ban"
         return None
 
     with expert_rag_lock:
@@ -491,4 +571,4 @@ def chat():
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000)

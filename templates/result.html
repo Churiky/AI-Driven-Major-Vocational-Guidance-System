@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kết quả gợi ý tuyển sinh | AI Guidance</title>
+    <title>Kết quả gợi ý tuyển sinh | Hướng nghiệp AI</title>
     <!-- Phản hồi dự phòng nếu thư viện CDN lỗi -->
     <script>
         window.onerror = function (msg, url, line) {
@@ -40,7 +40,8 @@
             max-width: 35vw;
             height: 700px;
             max-height: 85vh;
-            display: none; /* Ẩn mặc định, hiện khi nhấn nút */
+            display: none;
+            /* Ẩn mặc định, hiện khi nhấn nút */
             flex-direction: column;
             z-index: 9999;
             background: #ffffff;
@@ -52,8 +53,15 @@
         }
 
         @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* Nút nổi mở Chat */
@@ -71,17 +79,39 @@
             justify-content: center;
             cursor: pointer;
             z-index: 10000;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #chat-toggle-btn:hover { transform: scale(1.1); background: #0f172a; }
+
+        #chat-toggle-btn:hover {
+            transform: scale(1.1);
+            background: #0f172a;
+        }
 
         /* Tùy chỉnh thanh cuộn */
-        #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        #chat-box::-webkit-scrollbar {
+            width: 4px;
+        }
 
-        .ai-bubble { background: #E8F2FE; color: #1e293b; border-radius: 1.5rem; border-top-left-radius: 0.25rem; }
-        .user-bubble { background: #ffffff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 1.5rem; border-top-right-radius: 0.25rem; }
+        #chat-box::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .ai-bubble {
+            background: #E8F2FE;
+            color: #1e293b;
+            border-radius: 1.5rem;
+            border-top-left-radius: 0.25rem;
+        }
+
+        .user-bubble {
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            border-top-right-radius: 0.25rem;
+        }
 
         /* Mũi tên trong Bản đồ nghề nghiệp */
         .career-arrow {
@@ -93,7 +123,12 @@
             color: #cbd5e1;
             z-index: 10;
         }
-        @media (max-width: 1279px) { .career-arrow { display: none; } }
+
+        @media (max-width: 1279px) {
+            .career-arrow {
+                display: none;
+            }
+        }
 
         /* CSS cho chế độ xuất PDF */
         .pdf-export-overlay {
@@ -105,65 +140,103 @@
             z-index: -1;
             padding: 40px;
         }
-        .pdf-export-overlay .no-print { display: none !important; }
-        
+
+        .pdf-export-overlay .no-print {
+            display: none !important;
+        }
+
         /* Tối ưu hóa cho in ấn trình duyệt (Native Print) */
         @media print {
             @page {
                 size: A4 portrait;
                 margin: 10mm;
             }
+
             body {
                 background: white !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .no-print { display: none !important; }
-            .main-wrapper { 
-                width: 100% !important; 
-                max-width: none !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
+
+            .no-print {
+                display: none !important;
             }
+
+            .main-wrapper {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
             /* Đảm bảo grid hiển thị 2 cột ngay ngắn */
-            .grid, .xl\:grid-cols-4 {
+            .grid,
+            .xl\:grid-cols-4 {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
                 gap: 15px !important;
             }
-            .school-row, .bg-white.rounded-3xl {
+
+            .school-row,
+            .bg-white.rounded-3xl {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+
             table {
                 font-size: 9pt !important;
                 width: 100% !important;
                 table-layout: auto !important;
                 border-collapse: collapse !important;
             }
-            th, td {
+
+            th,
+            td {
                 padding: 10px 8px !important;
                 word-wrap: break-word !important;
                 vertical-align: middle !important;
                 line-height: 1.4 !important;
                 border-bottom: 1px solid #f1f5f9 !important;
             }
-            
+
             /* Ghi đè triệt để font size của Tailwind trong bản in */
-            td, th, .text-base, .text-sm, .text-xs, .text-2xl, .text-xl { 
-                font-size: 9pt !important; 
+            td,
+            th,
+            .text-base,
+            .text-sm,
+            .text-xs,
+            .text-2xl,
+            .text-xl {
+                font-size: 9pt !important;
             }
-            
+
             /* Tỉ lệ cột gợi ý cho trình duyệt */
-            th:nth-child(1), td:nth-child(1) { width: 35%; }
-            th:nth-child(2), td:nth-child(2) { width: 30%; }
-            
+            th:nth-child(1),
+            td:nth-child(1) {
+                width: 35%;
+            }
+
+            th:nth-child(2),
+            td:nth-child(2) {
+                width: 30%;
+            }
+
             /* Ngăn chặn chồng chéo */
-            td { white-space: normal !important; overflow: visible !important; }
-            td:last-child { white-space: nowrap !important; font-weight: 800 !important; }
-            
+            td {
+                white-space: normal !important;
+                overflow: visible !important;
+            }
+
+            td:last-child {
+                white-space: nowrap !important;
+                font-weight: 800 !important;
+            }
+
             /* Ẩn các nút nổi và chat */
-            #chat-toggle-btn, #chat-container { display: none !important; }
+            #chat-toggle-btn,
+            #chat-container {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -172,9 +245,11 @@
 
     <div class="main-wrapper">
         <!-- HEADER SECTION (Ảnh 1) -->
-        <div class="bg-white rounded-3xl shadow-sm p-8 mb-8 flex flex-col md:flex-row items-center justify-between border-l-[12px] border-blue-600 relative">
+        <div
+            class="bg-white rounded-3xl shadow-sm p-8 mb-8 flex flex-col md:flex-row items-center justify-between border-l-[12px] border-blue-600 relative">
             <div class="text-center md:text-left">
-                <h2 class="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Ngành phù hợp nhất dựa trên AI</h2>
+                <h2 class="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Ngành phù hợp nhất dựa
+                    trên AI</h2>
                 <h1 class="text-4xl font-black text-slate-800 tracking-tight">{{ major }}</h1>
             </div>
 
@@ -182,12 +257,16 @@
                 <div class="flex gap-8 bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     {% for item in display_probs|default([]) %}
                     <div class="text-center {% if not loop.first %}border-l pl-8 border-slate-200{% endif %}">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{{ item.name }}</p>
-                        <p class="text-2xl font-black {% if loop.first %}text-blue-600{% else %}text-slate-700{% endif %}">{{ item.p }}%</p>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{{ item.name }}
+                        </p>
+                        <p
+                            class="text-2xl font-black {% if loop.first %}text-blue-600{% else %}text-slate-700{% endif %}">
+                            {{ item.p }}%</p>
                     </div>
                     {% endfor %}
                 </div>
-                <button onclick="exportToPDF(this)" class="no-print bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-2">
+                <button onclick="exportToPDF(this)"
+                    class="no-print bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-2">
                     <span>📄 Xuất báo cáo PDF</span>
                 </button>
             </div>
@@ -197,7 +276,8 @@
         <section class="mb-10">
             <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
                 <div>
-                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Dashboard cá nhân hóa</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Dashboard cá nhân hóa
+                    </p>
                     <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">Chân dung sự nghiệp của bạn</h3>
                 </div>
                 <p class="text-sm text-slate-400 max-w-2xl text-right hidden md:block">
@@ -209,8 +289,11 @@
                 <!-- Holland Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Holland profile</span>
-                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase">{{ dashboard_data.profile_name }}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Holland
+                            profile</span>
+                        <span
+                            class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase">{{
+                            dashboard_data.profile_name }}</span>
                     </div>
                     <div class="space-y-3">
                         {% for item in dashboard_data.dominant_holland|default([]) %}
@@ -228,8 +311,10 @@
                 <!-- Strengths Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Thế mạnh học tập</span>
-                        <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Top mon</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Thế mạnh học
+                            tập</span>
+                        <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Top
+                            mon</span>
                     </div>
                     <div class="space-y-5">
                         {% for item in dashboard_data.subject_strengths|default([]) %}
@@ -249,12 +334,14 @@
                 <!-- AI Stats Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Tổng quan gợi ý</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Tổng quan gợi
+                            ý</span>
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                             <p class="text-[9px] uppercase font-black text-slate-400 mb-1">Xác suất đậu</p>
-                            <p class="text-xl font-black text-slate-800">{{ dashboard_data.stats.best_probability }}%</p>
+                            <p class="text-xl font-black text-slate-800">{{ dashboard_data.stats.best_probability }}%
+                            </p>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                             <p class="text-[9px] uppercase font-black text-slate-400 mb-1">Tổng lựa chọn</p>
@@ -262,7 +349,8 @@
                         </div>
                     </div>
                     <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg mt-2">
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Điểm chuẩn tham chiếu</p>
+                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Điểm chuẩn
+                            tham chiếu</p>
                         <p class="text-3xl font-black">{{ dashboard_data.stats.avg_cutoff }}</p>
                     </div>
                 </div>
@@ -270,15 +358,18 @@
                 <!-- Featured Card -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col">
                     <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-4">Hồ sơ nổi bật</h3>
-                    
+
                     {% if dashboard_data.top_school %}
                     <div class="rounded-2xl bg-slate-900 text-white p-5 flex flex-col shadow-xl">
                         <p class="text-[9px] font-black uppercase text-slate-400 mb-2">Trường nên xem trước</p>
-                        <h4 class="text-base font-black leading-tight mb-2 text-white">{{ dashboard_data.top_school.Truong }}</h4>
+                        <h4 class="text-base font-black leading-tight mb-2 text-white">{{
+                            dashboard_data.top_school.Truong }}</h4>
                         <p class="text-[11px] text-slate-300 mb-4 font-bold">{{ dashboard_data.top_school.Nganh }}</p>
                         <div class="flex gap-2">
-                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">Khối {{ dashboard_data.top_school.Block }}</span>
-                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">{{ dashboard_data.top_school.Prob }}%</span>
+                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">Khối {{
+                                dashboard_data.top_school.Block }}</span>
+                            <span class="bg-white/10 px-3 py-1 rounded-lg text-[9px] font-black">{{
+                                dashboard_data.top_school.Prob }}%</span>
                         </div>
                     </div>
                     {% endif %}
@@ -291,7 +382,8 @@
             <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
                 <div>
                     <p class="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Bản đồ nghề nghiệp</p>
-                    <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">Từ hồ sơ cá nhân đến trường mục tiêu</h3>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">Từ hồ sơ cá nhân đến trường mục
+                        tiêu</h3>
                 </div>
             </div>
 
@@ -299,12 +391,14 @@
                 <!-- Step 01 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">01. RIASEC Profile</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">01. RIASEC Profile
+                    </p>
                     <div class="space-y-3">
                         {% for node in career_map.profile_nodes|default([]) %}
                         <div class="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-black text-slate-900">{{ node.code }} - {{ node.label }}</span>
+                                <span class="text-xs font-black text-slate-900">{{ node.code }} - {{ node.label
+                                    }}</span>
                                 <span class="text-[10px] font-black text-blue-700">{{ node.score }}/5</span>
                             </div>
                             <p class="text-[10px] text-slate-600 font-medium">{{ node.description }}</p>
@@ -316,7 +410,8 @@
                 <!-- Step 02 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">02. Thế mạnh học tập</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">02. Thế mạnh học tập
+                    </p>
                     <div class="space-y-3">
                         {% for node in career_map.subject_nodes|default([]) %}
                         <div class="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
@@ -335,18 +430,24 @@
                 <!-- Step 03 -->
                 <div class="relative bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                     <span class="career-arrow">›</span>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">03. Ngành phù hợp</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">03. Ngành phù hợp
+                    </p>
                     <div class="space-y-3">
                         {% for node in career_map.major_nodes|default([]) %}
                         <div class="rounded-2xl border border-blue-50 bg-blue-50/30 p-4">
                             <div class="flex items-start justify-between gap-2 mb-2">
-                                <p class="text-xs font-black text-slate-800">{{ node.name }}</p>
-                                <span class="text-[10px] font-bold text-blue-700 whitespace-nowrap">{{ node.confidence }}%</span>
+                                <p class="text-xs font-black text-slate-800">
+                                    {{ node.name }}{% if node.is_hot %} (HOT){% endif %}
+                                </p>
+                                <span class="text-[10px] font-bold text-blue-700 whitespace-nowrap">{{ node.confidence
+                                    }}%</span>
                             </div>
                             <p class="text-[10px] text-slate-500 leading-relaxed">{{ node.fit_reason }}</p>
                             <div class="flex flex-wrap gap-2 mt-3">
                                 {% for role in node.roles %}
-                                <span class="px-2 py-0.5 rounded-full bg-white text-[9px] font-bold text-slate-600 border border-slate-100">{{ role }}</span>
+                                <span
+                                    class="px-2 py-0.5 rounded-full bg-white text-[9px] font-bold text-slate-600 border border-slate-100">{{
+                                    role }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -354,9 +455,10 @@
                     </div>
                 </div>
 
-                <!-- Step 04 -->
+                <!-- Step 05 -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">04. Trường Mục Tiêu</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">05. Trường Mục Tiêu
+                    </p>
                     <div class="space-y-3">
                         {% for node in career_map.target_schools|default([]) %}
                         <div class="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
@@ -365,7 +467,9 @@
                                     <p class="text-xs font-black text-slate-800 leading-tight">{{ node.school }}</p>
                                     <p class="text-[9px] text-slate-500 mt-1">{{ node.major }}</p>
                                 </div>
-                                <span class="text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-lg border">{{ node.probability }}%</span>
+                                <span
+                                    class="text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-lg border">{{
+                                    node.probability }}%</span>
                             </div>
                             <div class="flex gap-2 mt-3">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase">Khối {{ node.block }}</span>
@@ -384,12 +488,13 @@
                 <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
                     <span class="text-2xl">🎓</span> Danh sách trường phù hợp nhất cho bạn
                 </h3>
-                
+
                 <div class="flex flex-wrap gap-4 items-center no-print">
                     <!-- Lọc Vùng Miền -->
                     <div class="flex items-center gap-2">
                         <label class="text-[10px] font-black uppercase text-slate-400">Vùng miền:</label>
-                        <select id="filter-region" onchange="filterSchools()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="filter-region" onchange="filterSchools()"
+                            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="all">Tất cả</option>
                             <option value="Bac">Miền Bắc</option>
                             <option value="Trung">Miền Trung</option>
@@ -400,7 +505,8 @@
                     <!-- Lọc Khả Năng Đậu -->
                     <div class="flex items-center gap-2">
                         <label class="text-[10px] font-black uppercase text-slate-400">Khả năng:</label>
-                        <select id="filter-danhgia" onchange="filterSchools()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="filter-danhgia" onchange="filterSchools()"
+                            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="all">Tất cả</option>
                             <option value="An toàn">An toàn</option>
                             <option value="Vừa sức">Vừa sức</option>
@@ -425,45 +531,59 @@
                     </thead>
                     <tbody id="school-body" class="divide-y divide-slate-100">
                         {% for r in results|default([]) %}
-                        <tr class="school-row hover:bg-slate-50/80 transition-colors group" 
-                            style="display: none;"
-                            data-danhgia="{{ r.DanhGia }}" 
-                            data-region="{{ r.Region_Key|default('Khác') }}" 
+                        <tr class="school-row hover:bg-slate-50/80 transition-colors group" style="display: none;"
+                            data-danhgia="{{ r.DanhGia }}" data-region="{{ r.Region_Key|default('Khác') }}"
                             data-loai="{{ r.Loai|default('Công lập') }}">
                             <td class="p-6 px-10 font-black text-slate-900 text-sm">{{ r.Truong }}</td>
                             <td class="p-6 text-slate-700 text-xs font-bold leading-relaxed max-w-xs">{{ r.Nganh }}</td>
-                            <td class="p-6 text-center"><span class="bg-slate-100 px-3 py-1 rounded-lg font-mono text-[10px] font-black text-slate-700">{{ r.Block }}</span></td>
-                            <td class="p-6 text-center font-black text-blue-700 text-base">{{ r.Score|default('25.0') }}</td>
+                            <td class="p-6 text-center"><span
+                                    class="bg-slate-100 px-3 py-1 rounded-lg font-mono text-[10px] font-black text-slate-700">{{
+                                    r.Block }}</span></td>
+                            <td class="p-6 text-center font-black text-blue-700 text-base">{{ r.Score|default('25.0') }}
+                            </td>
                             <td class="p-6 text-center relative group cursor-pointer">
                                 <div class="flex items-center justify-center gap-1 font-black text-slate-500 text-sm">
                                     <span>{{ r.Cutoff }}</span>
-                                    <svg class="w-3 h-3 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    <svg class="w-3 h-3 text-slate-400 group-hover:text-blue-500 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7"></path>
+                                    </svg>
                                 </div>
-                                
+
                                 <!-- Hover Dropdown: Lịch sử điểm -->
-                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white border border-slate-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-3 no-print origin-bottom scale-95 group-hover:scale-100">
-                                    <p class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-2 pb-2 border-b border-slate-100">Lịch sử điểm</p>
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white border border-slate-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-3 no-print origin-bottom scale-95 group-hover:scale-100">
+                                    <p
+                                        class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-2 pb-2 border-b border-slate-100">
+                                        Lịch sử điểm</p>
                                     <div class="space-y-1.5">
                                         {% if r.History %}
-                                            {% for year, score in r.History.items()|sort(reverse=True) %}
-                                            <div class="flex justify-between items-center text-[11px] font-bold">
-                                                <span class="text-slate-500">{{ year }}</span>
-                                                <span class="text-blue-600">{{ score }}</span>
-                                            </div>
-                                            {% endfor %}
+                                        {% for year, score in r.History.items()|sort(reverse=True) %}
+                                        <div class="flex justify-between items-center text-[11px] font-bold">
+                                            <span class="text-slate-500">{{ year }}</span>
+                                            <span class="text-blue-600">{{ score }}</span>
+                                        </div>
+                                        {% endfor %}
                                         {% else %}
-                                            <div class="text-[10px] text-slate-400">Không có lịch sử</div>
+                                        <div class="text-[10px] text-slate-400">Không có lịch sử</div>
                                         {% endif %}
                                     </div>
                                     <!-- Mũi tên tooltip -->
-                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white"></div>
-                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-[9px] border-transparent border-t-slate-200 -z-10 mt-[1px]"></div>
+                                    <div
+                                        class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white">
+                                    </div>
+                                    <div
+                                        class="absolute top-full left-1/2 -translate-x-1/2 border-[9px] border-transparent border-t-slate-200 -z-10 mt-[1px]">
+                                    </div>
                                 </div>
                             </td>
                             <td class="p-6 text-center">
                                 <div class="flex justify-center">
-                                    <span class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap {% if r.DanhGia == 'An toàn' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif r.DanhGia == 'Vừa sức' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %} shadow-sm">
-                                        {% if r.DanhGia == 'An toàn' %}✅{% elif r.DanhGia == 'Vừa sức' %}⚡{% else %}🚩{% endif %} {{ r.DanhGia }}
+                                    <span
+                                        class="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap {% if r.DanhGia == 'An toàn' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif r.DanhGia == 'Vừa sức' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %} shadow-sm">
+                                        {% if r.DanhGia == 'An toàn' %}✅{% elif r.DanhGia == 'Vừa sức' %}⚡{% else %}🚩{%
+                                        endif %} {{ r.DanhGia }}
                                     </span>
                                 </div>
                             </td>
@@ -476,8 +596,12 @@
         </div>
 
         <div class="mt-12 flex flex-col md:flex-row justify-center items-center gap-4 no-print pb-20">
-            <a href="/" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-xl">🔄 Làm lại bài test</a>
-            <button onclick="exportToPDF(this)" class="text-slate-400 hover:text-blue-600 font-bold px-10 py-4 rounded-2xl transition-colors">📄 Xuất báo cáo PDF</button>
+            <a href="/"
+                class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-xl">🔄
+                Làm lại bài test</a>
+            <button onclick="exportToPDF(this)"
+                class="text-slate-400 hover:text-blue-600 font-bold px-10 py-4 rounded-2xl transition-colors">📄 Xuất
+                báo cáo PDF</button>
         </div>
     </div>
 
@@ -494,22 +618,28 @@
                 </div>
                 <div>
                     <h3 class="font-extrabold text-slate-800 text-sm">AI Admission Expert</h3>
-                    <p class="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1.5">
+                    <p
+                        class="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Tư vấn trực tuyến
                     </p>
                 </div>
             </div>
-            <button onclick="toggleChat()" class="text-slate-400 hover:text-slate-800 text-2xl transition-colors">&times;</button>
+            <button onclick="toggleChat()"
+                class="text-slate-400 hover:text-slate-800 text-2xl transition-colors">&times;</button>
         </div>
         <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6">
             <div class="ai-bubble p-5 text-sm leading-relaxed shadow-sm font-medium">
-                Chào bạn! Tôi là chuyên gia AI. Tôi đã sẵn sàng giải đáp mọi thắc mắc của bạn về **chỉ tiêu, học phí và quy chế tuyển sinh**. Hãy đặt câu hỏi nhé!
+                Chào bạn! Tôi là chuyên gia AI. Tôi đã sẵn sàng giải đáp mọi thắc mắc của bạn về **chỉ tiêu, học phí và
+                quy chế tuyển sinh**. Hãy đặt câu hỏi nhé!
             </div>
         </div>
         <div class="p-6 bg-white border-t">
             <div class="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-200">
-                <input type="text" id="user-msg" class="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none" placeholder="Hỏi tôi bất cứ điều gì...">
-                <button onclick="sendToAI()" class="bg-[#F5B544] hover:bg-[#e5a534] text-slate-900 font-black py-3 px-8 rounded-xl transition-all shadow-md text-xs uppercase tracking-wider">Gửi</button>
+                <input type="text" id="user-msg"
+                    class="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none"
+                    placeholder="Hỏi tôi bất cứ điều gì...">
+                <button onclick="sendToAI()"
+                    class="bg-[#F5B544] hover:bg-[#e5a534] text-slate-900 font-black py-3 px-8 rounded-xl transition-all shadow-md text-xs uppercase tracking-wider">Gửi</button>
             </div>
         </div>
     </div>
@@ -541,7 +671,7 @@
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text })
                 });
                 const data = await res.json();
@@ -556,18 +686,18 @@
         function filterSchools() {
             const regionFilter = document.getElementById('filter-region').value;
             const danhgiaFilter = document.getElementById('filter-danhgia').value;
-            
+
             let visibleCount = 0;
             const MAX_DISPLAY = 30;
-            
+
             const rows = document.querySelectorAll('.school-row');
             rows.forEach(row => {
                 const region = row.getAttribute('data-region') || '';
                 const danhgia = row.getAttribute('data-danhgia') || '';
-                
+
                 const regionMatch = (regionFilter === 'all' || region === regionFilter);
                 const danhgiaMatch = (danhgiaFilter === 'all' || danhgia === danhgiaFilter);
-                
+
                 if (regionMatch && danhgiaMatch && visibleCount < MAX_DISPLAY) {
                     row.style.display = '';
                     visibleCount++;
@@ -588,4 +718,5 @@
         document.addEventListener('DOMContentLoaded', filterSchools);
     </script>
 </body>
+
 </html>

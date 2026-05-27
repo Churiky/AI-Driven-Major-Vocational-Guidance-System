@@ -57,7 +57,7 @@ model = CareerTransformer(
 )
 
 # 7. TRAIN
-print(f"🔥 Bắt đầu huấn luyện với {num_classes} ngành nghề...")
+print(f"Starting training with {num_classes} majors...")
 trainer = Trainer(model, dataset)
 trainer.train(epochs=100) 
 

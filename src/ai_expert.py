@@ -337,8 +337,24 @@ class CareerAIExpert:
 
 # --- CÁCH CHẠY THỬ (SỬ DỤNG TRONG FILE TEST_API.PY) ---
 if __name__ == "__main__":
+    def load_key_for_test():
+        if os.environ.get("GEMINI_API_KEY"):
+            return os.environ.get("GEMINI_API_KEY")
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        env_path = os.path.join(base_dir, ".env")
+        if os.path.exists(env_path):
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("GEMINI_API_KEY="):
+                        val = line.split("=", 1)[1].strip()
+                        if val.startswith(('"', "'")) and val.endswith(('"', "'")):
+                            val = val[1:-1]
+                        return val
+        return "AIzaSyCqo5MWq-zM3BBlqTYbUdP5oFnEzrHWfN8"
+
     # Thay API Key của bạn vào đây
-    MY_KEY = "AIzaSyCqo5MWq-zM3BBlqTYbUdP5oFnEzrHWfN8" 
+    MY_KEY = load_key_for_test()
     expert = CareerAIExpert(api_key=MY_KEY)
     
     # Test một câu hỏi bất kỳ
