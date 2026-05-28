@@ -18,7 +18,7 @@ try:
     with open("models/scaler.pkl", "rb") as f:
         scaler = pickle.load(f)
 except FileNotFoundError:
-    print("Lỗi: Không tìm thấy file model hoặc nhãn. Vui lòng chạy train_model.py trước!")
+    print("Lỗi: Không tìm thấy file model hoặc nhãn. Vui lòng chạy train_baseline_careertransformer.py trước!")
     exit()
 
 num_classes = len(labels)

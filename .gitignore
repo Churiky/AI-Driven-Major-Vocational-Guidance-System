@@ -18,3 +18,7 @@ __pycache__/
 *.log
 .DS_Store
 tmp/
+
+# File bi?n môi trý?ng (ch?a API keys)
+.env
+.env.*
