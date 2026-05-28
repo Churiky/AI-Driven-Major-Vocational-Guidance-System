@@ -6,5 +6,5 @@
 * No emojis or em-dashes.
 * Avoid repeating the same action multiple times. Work efficiently and minimize redundant operations whenever possible.
 * Do not guess APIs, versions, flags, commit SHAs, or package names. Verify by reading code or docs before asserting.
-* Must answer in Vietnamese
+* Luôn trả lời bằng tiếng Việt, đảm bảo không có lỗi chính tả và không sử dụng tiếng nước khác.
 
