@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trắc nghiệm Holland</title>
+    <title>Trắc nghiệm tính cách Holland</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -15,10 +15,16 @@
         .fade-up { animation: fadeUp 0.45s ease forwards; }
         .step-active { background: #3b82f6; color: #fff; }
         .step-idle   { background: #e2e8f0; color: #94a3b8; }
+        
+        /* Smooth transitions for questions */
+        .question-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 flex flex-col justify-between">
 
+    <!-- Step Bar -->
     <div class="fixed top-0 left-0 right-0 bg-white border-b border-slate-100 z-40 px-6 py-3 flex items-center gap-3 shadow-sm">
         <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
             <span class="w-6 h-6 rounded-full step-active flex items-center justify-center text-[9px]">1</span>
@@ -41,29 +47,209 @@
         </div>
     </div>
 
-    <div class="max-w-xl mx-auto mt-20 fade-up">
-        <div class="text-center mb-8">
+    <!-- Main Container -->
+    <div class="max-w-xl w-full mx-auto mt-20 mb-8 fade-up flex-1 flex flex-col justify-center">
+        <!-- Header -->
+        <div class="text-center mb-6">
             <span class="bg-indigo-100 text-indigo-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Bước 1: RIASEC</span>
-            <h1 class="text-3xl font-black text-slate-800 mt-3 tracking-tight">Khám phá<br>nhóm tính cách</h1>
-            <p class="text-slate-400 text-sm mt-2 font-medium">Nhập tổng điểm các nhóm (từ 0 đến 5) dựa trên bài test Holland của bạn.</p>
+            <h1 class="text-3xl font-black text-slate-800 mt-2 tracking-tight">Khám phá tính cách</h1>
+            <p class="text-slate-400 text-sm mt-1 font-medium">Hãy chọn mức độ mô tả chính xác nhất về bản thân bạn cho từng câu hỏi.</p>
         </div>
 
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
-            <form method="post" class="grid grid-cols-2 gap-6">
-                {% for code in ['R', 'I', 'A', 'S', 'E', 'C'] %}
-                <div class="relative group">
-                    <label class="absolute -top-2.5 left-4 bg-white px-2 text-[10px] font-black text-blue-500 uppercase tracking-widest">Nhóm {{ code }}</label>
-                    <input name="{{ code }}" type="number" min="0" max="5" step="1" placeholder="0-5"
-                           oninput="if(value>5)value=5;if(value<0)value=0"
-                           class="w-full border-2 border-slate-50 bg-slate-50 rounded-2xl p-5 text-center text-3xl font-black text-slate-700 focus:border-blue-400 focus:bg-white outline-none transition-all" required>
+        <!-- Question Box -->
+        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 md:p-8 relative overflow-hidden flex flex-col justify-between min-h-[460px]">
+            <!-- Progress & Indicators -->
+            <div>
+                <div class="flex justify-between items-center text-xs font-bold text-slate-400 mb-3">
+                    <span id="progress-text">Câu hỏi 1/18</span>
+                    <span id="percentage-text" class="text-indigo-600">0% hoàn thành</span>
                 </div>
-                {% endfor %}
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
+                    <div id="progress-bar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Question Slide Content -->
+            <div id="question-container" class="question-card opacity-100 transform translate-x-0 flex-1 flex flex-col justify-center py-4">
+                <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-800 text-center leading-relaxed mb-6">
+                    Đang tải câu hỏi...
+                </h2>
                 
-                <button type="submit" class="col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-200 hover:-translate-y-1 active:scale-95 mt-4 text-sm uppercase tracking-widest">
-                    Tiếp tục: Nhập điểm thi ➡️
+                <!-- Option Buttons -->
+                <div class="space-y-3">
+                    <button type="button" onclick="handleAnswer(1)" class="option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98">
+                        <span class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0">1</span>
+                        <span>Hoàn toàn không thích / Không giống tôi</span>
+                    </button>
+                    <button type="button" onclick="handleAnswer(2)" class="option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98">
+                        <span class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0">2</span>
+                        <span>Không thích / Ít giống tôi</span>
+                    </button>
+                    <button type="button" onclick="handleAnswer(3)" class="option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98">
+                        <span class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0">3</span>
+                        <span>Bình thường / Trung tính</span>
+                    </button>
+                    <button type="button" onclick="handleAnswer(4)" class="option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98">
+                        <span class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0">4</span>
+                        <span>Thích / Khá giống tôi</span>
+                    </button>
+                    <button type="button" onclick="handleAnswer(5)" class="option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98">
+                        <span class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0">5</span>
+                        <span>Rất thích / Hoàn toàn giống tôi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="flex items-center justify-between pt-6 mt-4 border-t border-slate-100">
+                <button type="button" id="back-btn" onclick="goBack()" class="invisible bg-white border border-slate-200 text-slate-500 font-bold px-5 py-2.5 rounded-xl text-sm transition-all hover:bg-slate-50 active:scale-95 flex items-center gap-1.5">
+                    ⬅️ Quay lại
                 </button>
-            </form>
+                <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                    Holland Test • 18 câu
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Hidden Submission Form -->
+    <form id="holland-form" method="post" class="hidden">
+        <input type="hidden" name="R" id="input-R">
+        <input type="hidden" name="I" id="input-I">
+        <input type="hidden" name="A" id="input-A">
+        <input type="hidden" name="S" id="input-S">
+        <input type="hidden" name="E" id="input-E">
+        <input type="hidden" name="C" id="input-C">
+    </form>
+
+    <script>
+        // Static questionnaire mixed by category R-I-A-S-E-C
+        const questions = [
+            { text: "Thích lắp ráp, sửa chữa thiết bị điện tử hoặc đồ gia dụng.", category: "R" },
+            { text: "Thích giải quyết các bài toán hóc búa hoặc các câu đố đòi hỏi tư duy logic.", category: "I" },
+            { text: "Thích vẽ tranh, thiết kế đồ họa hoặc chụp ảnh nghệ thuật.", category: "A" },
+            { text: "Thích giúp đỡ mọi người xung quanh giải quyết khó khăn trong cuộc sống.", category: "S" },
+            { text: "Thích thuyết phục người khác đồng ý với quan điểm hoặc ý tưởng của mình.", category: "E" },
+            { text: "Thích sắp xếp công việc ngăn nắp, lưu trữ và phân loại tài liệu cẩn thận.", category: "C" },
+
+            { text: "Thích làm việc với máy móc, công cụ hoặc tự tay chế tạo đồ vật.", category: "R" },
+            { text: "Thích quan sát, nghiên cứu các hiện tượng tự nhiên hoặc hiện tượng khoa học.", category: "I" },
+            { text: "Thích viết lách, sáng tác truyện, thơ, viết blog hoặc kịch bản.", category: "A" },
+            { text: "Thích tham gia hoạt động tình nguyện, thiện nguyện hoặc hoạt động cộng đồng.", category: "S" },
+            { text: "Thích lập kế hoạch kinh doanh hoặc đứng ra tổ chức các sự kiện lớn.", category: "E" },
+            { text: "Thích làm việc với các bảng biểu, số liệu kế toán chi tiết và rõ ràng.", category: "C" },
+
+            { text: "Thích tìm hiểu cơ chế hoạt động của các loại xe cộ, động cơ kỹ thuật.", category: "R" },
+            { text: "Thích đọc sách khoa học, tìm tòi về công nghệ hoặc y học mới.", category: "I" },
+            { text: "Thích chơi nhạc cụ, ca hát hoặc tham gia các hoạt động diễn xuất.", category: "A" },
+            { text: "Thích lắng nghe tâm sự, tư vấn tâm lý hoặc chia sẻ kiến thức với người khác.", category: "S" },
+            { text: "Thích làm trưởng nhóm, dẫn dắt mọi người hoàn thành mục tiêu chung.", category: "E" },
+            { text: "Thích tuân theo các quy trình, hướng dẫn và kế hoạch đã được thiết lập sẵn.", category: "C" }
+        ];
+
+        let currentIndex = 0;
+        const answers = new Array(questions.length).fill(null);
+
+        function updateUI() {
+            const container = document.getElementById('question-container');
+            
+            // Apply fade out effect
+            container.style.opacity = 0;
+            container.style.transform = 'translateY(10px)';
+
+            setTimeout(() => {
+                const q = questions[currentIndex];
+                document.getElementById('question-text').innerText = q.text;
+                document.getElementById('progress-text').innerText = `Câu hỏi ${currentIndex + 1}/${questions.length}`;
+                
+                const percent = Math.round((currentIndex / questions.length) * 100);
+                document.getElementById('percentage-text').innerText = `${percent}% hoàn thành`;
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+
+                // Handle Back button visibility
+                const backBtn = document.getElementById('back-btn');
+                if (currentIndex > 0) {
+                    backBtn.classList.remove('invisible');
+                } else {
+                    backBtn.classList.add('invisible');
+                }
+
+                // Restore active option classes if already answered
+                const savedAnswer = answers[currentIndex];
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons.forEach((btn, idx) => {
+                    const scoreVal = idx + 1;
+                    const badge = btn.querySelector('span');
+                    if (savedAnswer === scoreVal) {
+                        btn.className = "option-btn w-full bg-indigo-50 border-2 border-indigo-500 rounded-2xl p-4 text-left font-semibold text-indigo-700 text-sm flex items-center gap-3 transition-all";
+                        badge.className = "w-7 h-7 rounded-full bg-indigo-600 border border-indigo-600 text-white flex items-center justify-center text-xs font-black shrink-0";
+                    } else {
+                        btn.className = "option-btn w-full bg-slate-50 border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm flex items-center gap-3 transition-all active:scale-98";
+                        badge.className = "w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-xs font-black shrink-0";
+                    }
+                });
+
+                // Fade back in
+                container.style.opacity = 1;
+                container.style.transform = 'translateY(0)';
+            }, 150);
+        }
+
+        function handleAnswer(score) {
+            answers[currentIndex] = score;
+
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                updateUI();
+            } else {
+                // All questions answered, calculate and submit
+                submitQuiz();
+            }
+        }
+
+        function goBack() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateUI();
+            }
+        }
+
+        function submitQuiz() {
+            // Calculate sum and averages for each Holland group
+            const categorySums = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+            const categoryCounts = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+
+            questions.forEach((q, idx) => {
+                const score = answers[idx];
+                categorySums[q.category] += score;
+                categoryCounts[q.category]++;
+            });
+
+            // Calculate averages and scale to model inputs
+            // Model expects scale 0-5. The average of Likert 1-5 is 1.0-5.0. 
+            // We can directly submit these average scores, or map them.
+            // Since the system scales scores, standard averages (between 1 and 5) work perfectly.
+            const R_avg = Math.round((categorySums["R"] / categoryCounts["R"]) * 100) / 100;
+            const I_avg = Math.round((categorySums["I"] / categoryCounts["I"]) * 100) / 100;
+            const A_avg = Math.round((categorySums["A"] / categoryCounts["A"]) * 100) / 100;
+            const S_avg = Math.round((categorySums["S"] / categoryCounts["S"]) * 100) / 100;
+            const E_avg = Math.round((categorySums["E"] / categoryCounts["E"]) * 100) / 100;
+            const C_avg = Math.round((categorySums["C"] / categoryCounts["C"]) * 100) / 100;
+
+            // Fill hidden fields
+            document.getElementById('input-R').value = R_avg;
+            document.getElementById('input-I').value = I_avg;
+            document.getElementById('input-A').value = A_avg;
+            document.getElementById('input-S').value = S_avg;
+            document.getElementById('input-E').value = E_avg;
+            document.getElementById('input-C').value = C_avg;
+
+            // Submit form
+            document.getElementById('holland-form').submit();
+        }
+
+        // Initialize first question
+        updateUI();
+    </script>
 </body>
 </html>

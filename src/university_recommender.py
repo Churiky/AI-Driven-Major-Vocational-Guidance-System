@@ -107,6 +107,33 @@ class UniversityRecommender:
             "BaoChi": [
                 "bao chi", "tuyen truyen", "truyen thong", "phat thanh", "truyen hinh"
             ],
+            "CongNgheSinhHoc": [
+                "sinh hoc", "cong nghe sinh hoc", "ky thuat sinh hoc"
+            ],
+            "CongNgheVatLieu": [
+                "vat lieu", "cong nghe vat lieu", "ky thuat vat lieu", "khoa hoc vat lieu"
+            ],
+            "DienTuVienThong": [
+                "vien thong", "dien tu vien thong", "ky thuat dien tu vien thong"
+            ],
+            "CongNghiepBaoVeMoiTruong": [
+                "moi truong", "ky thuat moi truong", "quan ly moi truong", "bao ve moi truong"
+            ],
+            "DuLich": [
+                "du lich", "lu hanh", "huong dan vien du lich", "quan tri du lich"
+            ],
+            "QuanTriTaiChinh": [
+                "tai chinh", "quan tri tai chinh", "tai chinh doanh nghiep", "tai chinh ngan hang"
+            ],
+            "KinhTeQuocTe": [
+                "kinh te quoc te", "thuong mai quoc te", "kinh doanh quoc te"
+            ],
+            "NgoaiGiao": [
+                "ngoai giao", "quan he quoc te", "doi ngoai"
+            ],
+            "DuocLieu": [
+                "duoc", "duoc hoc", "duoc lieu", "hoa duoc"
+            ]
         }
 
         # 4. Tiền xử lý thuộc tính cho TOPSIS
@@ -309,6 +336,7 @@ class UniversityRecommender:
             "Miền Tây": ["Đồng bằng sông Cửu Long"]
         }
 
+        nganh_key = unidecode(nganh_key)
         keywords = self.mapping.get(nganh_key, [])
         if not keywords: return []
 

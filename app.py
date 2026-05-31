@@ -215,6 +215,51 @@ MAJOR_INSIGHTS = {
         "theme": "Tài chính và kiểm soát",
         "fit_reason": "Phù hợp với người cẩn thận, logic, yêu thích con số và quy trình rõ ràng.",
         "roles": ["Kế toán viên", "Kiểm toán viên", "Chuyên viên kiểm soát nội bộ"]
+    },
+    "CongNgheSinhHoc": {
+        "theme": "Nghiên cứu sinh học và ứng dụng",
+        "fit_reason": "Phù hợp với học sinh thích Sinh, Hóa, thích nghiên cứu khoa học và phát triển các sản phẩm công nghệ sinh học.",
+        "roles": ["Nghiên cứu viên sinh học", "Kỹ sư công nghệ sinh học", "Kỹ thuật viên phòng thí nghiệm"]
+    },
+    "CongNgheVatLieu": {
+        "theme": "Khoa học vật liệu và chế tạo",
+        "fit_reason": "Phù hợp với học sinh yêu thích Vật lý, Hóa học, thích tìm tòi, chế tạo vật liệu mới ứng dụng trong công nghiệp.",
+        "roles": ["Kỹ sư công nghệ vật liệu", "Chuyên viên kiểm định chất lượng", "Nhà nghiên cứu vật liệu"]
+    },
+    "DienTuVienThong": {
+        "theme": "Kỹ thuật phần cứng và truyền thông",
+        "fit_reason": "Phù hợp với học sinh đam mê điện tử, mạng truyền thông viễn thông và thiết kế mạch điện tử.",
+        "roles": ["Kỹ sư điện tử viễn thông", "Kỹ sư thiết kế vi mạch", "Chuyên viên tối ưu mạng"]
+    },
+    "CongNghiepBaoVeMoiTruong": {
+        "theme": "Bảo vệ môi trường và phát triển bền vững",
+        "fit_reason": "Phù hợp với học sinh yêu thích thiên nhiên, quan tâm đến các vấn đề bảo tồn và xử lý môi trường.",
+        "roles": ["Kỹ sư môi trường", "Chuyên viên đánh giá tác động môi trường", "Tư vấn quản lý chất thải"]
+    },
+    "DuLich": {
+        "theme": "Dịch vụ lữ hành và trải nghiệm",
+        "fit_reason": "Phù hợp với người có khả năng giao tiếp và ngoại ngữ tốt, yêu thích khám phá và chăm sóc khách hàng.",
+        "roles": ["Hướng dẫn viên du lịch", "Điều hành tour", "Quản lý dịch vụ lữ hành"]
+    },
+    "QuanTriTaiChinh": {
+        "theme": "Quản lý dòng tiền và đầu tư",
+        "fit_reason": "Phù hợp với học sinh giỏi toán, có tư duy nhạy bén về tiền tệ và chiến lược đầu tư tài chính.",
+        "roles": ["Giám đốc tài chính (CFO)", "Chuyên viên quản trị rủi ro", "Chuyên viên phân tích đầu tư"]
+    },
+    "KinhTeQuocTe": {
+        "theme": "Thương mại quốc tế và hội nhập",
+        "fit_reason": "Phù hợp với người yêu thích kinh tế vĩ mô, giao thương quốc tế và có kỹ năng ngoại ngữ tốt.",
+        "roles": ["Chuyên viên xuất nhập khẩu", "Chuyên viên phân tích thị trường quốc tế", "Tư vấn thương mại"]
+    },
+    "NgoaiGiao": {
+        "theme": "Quan hệ quốc tế và đàm phán",
+        "fit_reason": "Phù hợp với người giao tiếp khéo léo, yêu thích ngoại ngữ, chính trị vĩ mô và đàm phán thuyết phục.",
+        "roles": ["Chuyên viên đối ngoại", "Nhà ngoại giao", "Điều phối viên dự án quốc tế"]
+    },
+    "DuocLieu": {
+        "theme": "Y dược học và thảo dược",
+        "fit_reason": "Phù hợp với học sinh thích Hóa, Sinh, đam mê tìm hiểu dược liệu tự nhiên và chăm sóc sức khỏe.",
+        "roles": ["Dược sĩ bào chế", "Nghiên cứu viên dược liệu", "Chuyên viên phát triển dược phẩm"]
     }
 }
 
@@ -364,11 +409,11 @@ def load_prediction_model(path, num_classes):
             num_acad_features=11,
             num_psych_features=6,
             num_classes=num_classes,
-            d_model=64,
-            nhead=4,
-            num_layers=3,
-            ff_multiplier=3,
-            dropout=0.15
+            d_model=128,          # Đã cập nhật
+            nhead=8,              # Đã cập nhật
+            num_layers=4,         # Đã cập nhật
+            ff_multiplier=4,      # Đã cập nhật
+            dropout=0.2           # Đã cập nhật
         )
         model.load_state_dict(checkpoint["model_state_dict"])
         return model
@@ -430,12 +475,12 @@ def get_rag_expert():
 def holland():
     if request.method == "POST":
         session['holland'] = {
-            "R": int(request.form.get("R", 0)),
-            "I": int(request.form.get("I", 0)),
-            "A": int(request.form.get("A", 0)),
-            "S": int(request.form.get("S", 0)),
-            "E": int(request.form.get("E", 0)),
-            "C": int(request.form.get("C", 0))
+            "R": float(request.form.get("R", 0)),
+            "I": float(request.form.get("I", 0)),
+            "A": float(request.form.get("A", 0)),
+            "S": float(request.form.get("S", 0)),
+            "E": float(request.form.get("E", 0)),
+            "C": float(request.form.get("C", 0))
         }
         return redirect(url_for('score'))
     return render_template("holland.html")
